@@ -431,6 +431,31 @@ export const TASK_CATEGORY_INFO = {
     riskCategory: RiskCategory.NATURAL_RISKS,
     description: "Tasks to protect against wind and storm damage"
   },
+  [TaskCategory.EARTHQUAKE_PREPAREDNESS]: {
+    name: "Earthquake Preparedness",
+    riskCategory: RiskCategory.GEOGRAPHIC_RISKS,
+    description: "Tasks to prepare for and mitigate earthquake damage"
+  },
+  [TaskCategory.WILDFIRE_PREVENTION]: {
+    name: "Wildfire Prevention",
+    riskCategory: RiskCategory.GEOGRAPHIC_RISKS,
+    description: "Tasks to prevent and protect against wildfires"
+  },
+  [TaskCategory.LOCATION_HAZARDS]: {
+    name: "Location Hazards",
+    riskCategory: RiskCategory.GEOGRAPHIC_RISKS,
+    description: "Tasks to address location-specific hazards"
+  },
+  [TaskCategory.CLIMATE_ADAPTATION]: {
+    name: "Climate Adaptation",
+    riskCategory: RiskCategory.GEOGRAPHIC_RISKS,
+    description: "Tasks to adapt to climate-related risks"
+  },
+  [TaskCategory.INFRASTRUCTURE_RELIABILITY]: {
+    name: "Infrastructure Reliability",
+    riskCategory: RiskCategory.GEOGRAPHIC_RISKS,
+    description: "Tasks to ensure infrastructure reliability"
+  },
   [TaskCategory.SECURITY]: {
     name: "Security",
     riskCategory: RiskCategory.HUMAN_RISKS,
