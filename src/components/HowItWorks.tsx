@@ -63,7 +63,7 @@ export const HowItWorks = () => {
           ))}
         </div>
         <div className="text-center mt-12">
-          <Button variant="outline" size="lg" asChild>
+          <Button variant="outline" size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
             <Link href="/how-it-works">
               Learn More About How It Works
             </Link>

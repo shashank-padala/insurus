@@ -5,7 +5,7 @@ export const Footer = () => {
   return (
     <footer className="gradient-hero text-primary-foreground">
       <div className="container px-4 py-12 mx-auto">
-        <div className="grid md:grid-cols-4 gap-8 max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
           {/* Brand */}
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 text-accent">
@@ -30,19 +30,12 @@ export const Footer = () => {
                   How It Works
                 </Link>
               </li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 className="font-heading font-bold mb-4">Resources</h3>
-            <ul className="space-y-2 text-sm">
               <li>
                 <Link
                   href="/rewards"
                   className="text-primary-foreground/70 hover:text-accent transition-colors"
                 >
-                  Rewards & Safety Score
+                  How Rewards Are Calculated
                 </Link>
               </li>
             </ul>
