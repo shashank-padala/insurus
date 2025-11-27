@@ -73,7 +73,6 @@ export async function GET() {
 
     return NextResponse.json({
       user: {
-        safetyScore: userProfile.safety_score,
         totalPointsEarned: userProfile.total_points_earned,
         currentTier: userProfile.current_tier,
       },

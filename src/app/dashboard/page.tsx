@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { Shield, Home, Award, TrendingUp, ListChecks, Calendar, Plus } from "lucide-react";
+import { Shield, Home, Award, ListChecks, Calendar, Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
@@ -117,21 +117,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
-          <div className="bg-card p-4 sm:p-6 rounded-xl shadow-card">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-accent" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Safety Score</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {userProfile?.safety_score || 100}
-                </p>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 mb-6">
           <div className="bg-card p-4 sm:p-6 rounded-xl shadow-card">
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">

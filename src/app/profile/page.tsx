@@ -146,13 +146,7 @@ export default function ProfilePage() {
             <h2 className="text-xl font-heading font-bold text-foreground mb-6">
               Your Stats
             </h2>
-            <div className="grid md:grid-cols-4 gap-6">
-              <div>
-                <Label className="text-muted-foreground text-sm">Safety Score</Label>
-                <p className="text-3xl font-bold text-foreground mt-2">
-                  {profile.safety_score || 100}
-                </p>
-              </div>
+            <div className="grid md:grid-cols-3 gap-6">
               <div>
                 <Label className="text-muted-foreground text-sm">Total Points</Label>
                 <p className="text-3xl font-bold text-foreground mt-2">

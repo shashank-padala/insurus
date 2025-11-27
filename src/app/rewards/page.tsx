@@ -8,9 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Shield,
-  TrendingUp,
   Award,
-  Target,
   Loader2,
   ChevronRight,
   Home,
@@ -161,21 +159,7 @@ export default function RewardsPage() {
 
         {/* User Stats Section */}
         {userStats && (
-          <div className="grid md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-card p-6 rounded-xl shadow-card">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Safety Score</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    {userStats.user?.safetyScore || 100}
-                  </p>
-                </div>
-              </div>
-            </div>
-
+          <div className="grid md:grid-cols-3 gap-4 mb-6">
             <div className="bg-card p-6 rounded-xl shadow-card">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
@@ -264,9 +248,12 @@ export default function RewardsPage() {
                 <p className="text-sm font-semibold text-foreground mb-2">
                   Next Tier: {nextTier.tierName}
                 </p>
-                <p className="text-sm text-muted-foreground">
-                  {nextTier.description} - {nextTier.insuranceDiscount}% insurance discount
+                <p className="text-sm text-muted-foreground mb-3">
+                  {nextTier.description}
                 </p>
+                <Button variant="outline" size="sm" asChild>
+                  <Link href="/rewards/tiers">View All Tiers</Link>
+                </Button>
               </div>
             )}
           </div>

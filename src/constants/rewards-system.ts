@@ -123,7 +123,7 @@ export const POINTS_CALCULATION = {
  * Added for: Completed tasks, streaks, early completions
  */
 export const SAFETY_SCORE_CALCULATION = {
-  baseScore: 100,
+  baseScore: 0, // Safety scores start at 0 for each property
   
   // Deductions
   overdueTaskPenalty: (daysOverdue: number) => {

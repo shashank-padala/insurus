@@ -49,8 +49,8 @@ export default function RewardsCalculationPage() {
           </div>
           
           <p className="text-base sm:text-lg text-muted-foreground mb-6">
-            Your Safety Score is a comprehensive measure of how well you're protecting your
-            property. It starts at 100 and adjusts based on your task completion history.
+            Each property has its own Safety Score, which measures how well that property is being
+            protected. Safety scores start at 0 and increase as you complete safety tasks for that property.
           </p>
           
           <div className="grid md:grid-cols-2 gap-6 mb-6">

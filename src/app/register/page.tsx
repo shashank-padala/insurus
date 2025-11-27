@@ -71,7 +71,6 @@ function RegisterForm() {
             id: authData.user.id,
             email: formData.email,
             full_name: formData.fullName,
-            safety_score: 100,
             total_points_earned: 0,
             current_tier: "Starter",
           });

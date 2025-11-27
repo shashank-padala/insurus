@@ -220,27 +220,35 @@ export async function POST(
         })
         .eq("id", user.id);
 
-      // Update safety score
+      // Update property safety score
       const scoreChange = calculateSafetyScoreChange(
         task.base_points_value,
         true
       );
 
-      const { data: currentUser } = await supabase
-        .from("users")
-        .select("safety_score")
-        .eq("id", user.id)
-        .single();
+      // Get the property ID from the checklist
+      const checklist = Array.isArray(task.task_checklists)
+        ? task.task_checklists[0]
+        : task.task_checklists;
+      const propertyId = checklist?.property_id;
 
-      const newSafetyScore = Math.min(
-        1000,
-        Math.max(0, (currentUser?.safety_score || 100) + scoreChange)
-      );
+      if (propertyId) {
+        const { data: currentProperty } = await supabase
+          .from("properties")
+          .select("safety_score")
+          .eq("id", propertyId)
+          .single();
 
-      await supabase
-        .from("users")
-        .update({ safety_score: newSafetyScore })
-        .eq("id", user.id);
+        const newSafetyScore = Math.min(
+          1000,
+          Math.max(0, (currentProperty?.safety_score || 0) + scoreChange)
+        );
+
+        await supabase
+          .from("properties")
+          .update({ safety_score: newSafetyScore })
+          .eq("id", propertyId);
+      }
 
       // Blockchain integration disabled - will be added later
       // TODO: Re-enable blockchain publishing when ready

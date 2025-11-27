@@ -137,7 +137,6 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
             id: authData.user.id,
             email: signupData.email,
             full_name: signupData.fullName,
-            safety_score: 100,
             total_points_earned: 0,
             current_tier: "Starter",
           });

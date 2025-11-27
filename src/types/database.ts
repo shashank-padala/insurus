@@ -14,10 +14,8 @@ export interface Database {
           id: string;
           email: string;
           full_name: string;
-          safety_score: number;
           total_points_earned: number;
           current_tier: string;
-          last_safety_score_reset: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,10 +23,8 @@ export interface Database {
           id: string;
           email: string;
           full_name: string;
-          safety_score?: number;
           total_points_earned?: number;
           current_tier?: string;
-          last_safety_score_reset?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -36,10 +32,8 @@ export interface Database {
           id?: string;
           email?: string;
           full_name?: string;
-          safety_score?: number;
           total_points_earned?: number;
           current_tier?: string;
-          last_safety_score_reset?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -55,6 +49,7 @@ export interface Database {
           property_type: string;
           safety_devices: Json;
           risk_assessment: Json | null;
+          safety_score: number;
           created_at: string;
           updated_at: string;
         };
