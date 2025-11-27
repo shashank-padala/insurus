@@ -145,6 +145,16 @@
     font-family: 'Outfit', system-ui, -apple-system, sans-serif;
     font-weight: 700;
   }
+
+  /* Make all clickable elements show pointer cursor */
+  a, button, [role="button"], [type="button"], [type="submit"], input[type="checkbox"], input[type="radio"], label[for], select {
+    cursor: pointer;
+  }
+
+  /* Disable pointer for disabled elements */
+  a:disabled, button:disabled, [role="button"]:disabled, [type="button"]:disabled, [type="submit"]:disabled {
+    cursor: not-allowed;
+  }
 }
 
 @layer utilities {

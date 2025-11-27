@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Home } from "lucide-react";
 import { US_STATES } from "@/constants/usa-states";
+import { CANADA_PROVINCES } from "@/constants/canada-provinces";
 import { createClient } from "@/lib/supabase/client";
 
 export default function NewPropertyPage() {
@@ -18,6 +19,14 @@ export default function NewPropertyPage() {
     country: "USA",
     propertyType: "",
   });
+
+  const handleCountryChange = (country: string) => {
+    setFormData({ ...formData, country, state: "" }); // Reset state when country changes
+  };
+
+  const getStateOptions = () => {
+    return formData.country === "USA" ? US_STATES : CANADA_PROVINCES;
+  };
   const [safetyDevices, setSafetyDevices] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -125,7 +134,7 @@ export default function NewPropertyPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="state">State *</Label>
+                  <Label htmlFor="state">State / Province *</Label>
                   <select
                     id="state"
                     required
@@ -136,10 +145,10 @@ export default function NewPropertyPage() {
                     disabled={loading}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
-                    <option value="">Select state</option>
-                    {US_STATES.map((state) => (
-                      <option key={state.abbreviation} value={state.abbreviation}>
-                        {state.name}
+                    <option value="">Select {formData.country === "USA" ? "state" : "province"}</option>
+                    {getStateOptions().map((item) => (
+                      <option key={item.abbreviation} value={item.abbreviation}>
+                        {item.name}
                       </option>
                     ))}
                   </select>
@@ -152,16 +161,12 @@ export default function NewPropertyPage() {
                   id="country"
                   required
                   value={formData.country}
-                  onChange={(e) =>
-                    setFormData({ ...formData, country: e.target.value })
-                  }
+                  onChange={(e) => handleCountryChange(e.target.value)}
                   disabled={loading}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <option value="USA">USA</option>
                   <option value="Canada">Canada</option>
-                  <option value="Mexico">Mexico</option>
-                  <option value="Other">Other</option>
                 </select>
               </div>
 

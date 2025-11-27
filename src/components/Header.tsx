@@ -57,13 +57,13 @@ export const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="w-full gradient-hero relative z-10">
         <div className="container px-4 mx-auto">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2">
               <Shield className="w-6 h-6 text-accent" />
-              <span className="font-heading font-bold text-xl">Insurus</span>
+              <span className="font-heading font-bold text-xl text-primary-foreground">Insurus</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -76,7 +76,7 @@ export const Header = () => {
                     "text-sm font-medium transition-colors hover:text-accent",
                     isActive(link.href)
                       ? "text-accent"
-                      : "text-muted-foreground"
+                      : "text-primary-foreground/80"
                   )}
                 >
                   {link.label}
@@ -112,7 +112,7 @@ export const Header = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2"
+              className="md:hidden p-2 text-primary-foreground"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle menu"
             >
@@ -126,7 +126,7 @@ export const Header = () => {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t py-4">
+            <div className="md:hidden border-t border-primary-foreground/20 py-4">
               <nav className="flex flex-col gap-4">
                 {navLinks.map((link) => (
                   <Link
@@ -137,13 +137,13 @@ export const Header = () => {
                       "text-base font-medium transition-colors hover:text-accent px-2 py-1",
                       isActive(link.href)
                         ? "text-accent"
-                        : "text-muted-foreground"
+                        : "text-primary-foreground/80"
                     )}
                   >
                     {link.label}
                   </Link>
                 ))}
-                <div className="pt-2 border-t space-y-2">
+                <div className="pt-2 border-t border-primary-foreground/20 space-y-2">
                   {user ? (
                     <>
                       <Button
