@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,13 +16,26 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+interface PropertyData {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  propertyType: string;
+}
+
 interface AuthModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultTab?: "login" | "signup";
+  prefillData?: {
+    fullName?: string;
+    email?: string;
+    property?: PropertyData;
+  };
 }
 
-export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModalProps) {
+export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillData }: AuthModalProps) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"login" | "signup">(defaultTab);
   const [loading, setLoading] = useState(false);
@@ -37,11 +50,24 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
 
   // Signup form state
   const [signupData, setSignupData] = useState({
-    fullName: "",
-    email: "",
+    fullName: prefillData?.fullName || "",
+    email: prefillData?.email || "",
     password: "",
     confirmPassword: "",
   });
+
+  // Update signup data when prefillData changes
+  useEffect(() => {
+    if (prefillData && open) {
+      setSignupData({
+        fullName: prefillData.fullName || "",
+        email: prefillData.email || "",
+        password: "",
+        confirmPassword: "",
+      });
+      setActiveTab("signup"); // Ensure signup tab is active when prefill data is provided
+    }
+  }, [prefillData, open]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +136,51 @@ export function AuthModal({ open, onOpenChange, defaultTab = "login" }: AuthModa
           });
 
         if (profileError) throw profileError;
+
+        // If property data was provided, create the property
+        if (prefillData?.property) {
+          const propertyData = prefillData.property;
+          const { data: newProperty, error: propertyError } = await supabase
+            .from("properties")
+            .insert({
+              user_id: authData.user.id,
+              address: propertyData.address,
+              city: propertyData.city,
+              state: propertyData.state,
+              country: propertyData.country,
+              property_type: propertyData.propertyType,
+              safety_devices: [],
+            })
+            .select()
+            .single();
+
+          if (propertyError) {
+            console.error("Failed to create property:", propertyError);
+            // Continue to dashboard even if property creation fails
+          } else if (newProperty) {
+            // Generate first checklist for the property
+            // We'll do this via API call to ensure proper checklist generation
+            try {
+              const currentMonth = new Date(
+                new Date().getFullYear(),
+                new Date().getMonth(),
+                1
+              ).toISOString().split("T")[0];
+
+              await fetch("/api/checklists/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  propertyId: newProperty.id,
+                  month: currentMonth,
+                }),
+              });
+            } catch (checklistError) {
+              console.error("Failed to generate checklist:", checklistError);
+              // Continue to dashboard even if checklist generation fails
+            }
+          }
+        }
 
         onOpenChange(false);
         router.push("/dashboard");

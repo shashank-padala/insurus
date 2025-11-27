@@ -195,7 +195,7 @@ export const Header = () => {
       <AuthModal
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}
-        defaultTab="login"
+        defaultTab="signup"
       />
     </>
   );

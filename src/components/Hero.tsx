@@ -4,12 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { US_STATES } from "@/constants/usa-states";
 import { CANADA_PROVINCES } from "@/constants/canada-provinces";
 import Link from "next/link";
+import { AuthModal } from "@/components/AuthModal";
+import { createClient } from "@/lib/supabase/client";
 
 export const Hero = () => {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,6 +25,25 @@ export const Hero = () => {
     country: "USA",
     propertyType: "",
   });
+
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   const handleCountryChange = (country: string) => {
     setFormData({ ...formData, country, state: "" }); // Reset state when country changes
@@ -30,7 +55,21 @@ export const Hero = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    
+    // If user is logged in, they shouldn't be here (auto-redirect handles this)
+    // But just in case, redirect them
+    if (user) {
+      window.location.href = "/dashboard";
+      return;
+    }
+
+    // Validate form data
+    if (!formData.name || !formData.email || !formData.address || !formData.city || !formData.state || !formData.propertyType) {
+      return;
+    }
+
+    // Open auth modal with pre-filled data
+    setAuthModalOpen(true);
   };
 
   return (
@@ -200,6 +239,22 @@ export const Hero = () => {
           </div>
         </div>
       </div>
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        defaultTab="signup"
+        prefillData={{
+          fullName: formData.name,
+          email: formData.email,
+          property: {
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            country: formData.country,
+            propertyType: formData.propertyType,
+          },
+        }}
+      />
     </section>
   );
 };
