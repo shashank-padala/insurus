@@ -57,7 +57,7 @@ export const Header = () => {
 
   return (
     <>
-      <header className="w-full gradient-hero relative z-10">
+      <header className="hidden md:block w-full gradient-hero relative z-10">
         <div className="container px-4 mx-auto">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}

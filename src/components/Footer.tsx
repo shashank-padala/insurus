@@ -30,30 +30,6 @@ export const Footer = () => {
                   How It Works
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  About Us
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -69,38 +45,6 @@ export const Footer = () => {
                   Rewards & Safety Score
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Safety Tips
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Blog
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Documentation
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Support
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -110,7 +54,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  href="#"
+                  href="/privacy"
                   className="text-primary-foreground/70 hover:text-accent transition-colors"
                 >
                   Privacy Policy
@@ -118,18 +62,10 @@ export const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="#"
+                  href="/terms"
                   className="text-primary-foreground/70 hover:text-accent transition-colors"
                 >
                   Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="#"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors"
-                >
-                  Cookie Policy
                 </Link>
               </li>
             </ul>
@@ -140,20 +76,6 @@ export const Footer = () => {
         <div className="border-t border-primary-foreground/10 mt-8 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-primary-foreground/70">
             <p>© {new Date().getFullYear()} Insurus. All rights reserved.</p>
-            <div className="flex gap-6">
-              <Link
-                href="#"
-                className="hover:text-accent transition-colors"
-              >
-                Twitter
-              </Link>
-              <Link
-                href="#"
-                className="hover:text-accent transition-colors"
-              >
-                LinkedIn
-              </Link>
-            </div>
           </div>
         </div>
       </div>
