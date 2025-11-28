@@ -168,12 +168,7 @@ export async function POST(
         .eq("id", user.id);
 
       // Update property safety score as percentage
-      // Get the property ID from the checklist
-      const checklist = Array.isArray(task.task_checklists)
-        ? task.task_checklists[0]
-        : task.task_checklists;
-      const propertyId = checklist?.property_id;
-
+      // Reuse propertyId from above (already extracted from checklist)
       if (propertyId) {
         // Recalculate safety score as percentage
         const safetyScorePercentage = await calculateSafetyScorePercentage(

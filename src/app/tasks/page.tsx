@@ -119,7 +119,7 @@ export default function TasksPage() {
 
   // Group tasks by month
   const groupTasksByMonth = (tasks: any[]) => {
-    const grouped: { [key: string]: any[] } = {};
+    const grouped: { [key: string]: { label: string; date: Date; tasks: any[] } } = {};
     const unscheduled: any[] = [];
 
     tasks.forEach((task) => {
