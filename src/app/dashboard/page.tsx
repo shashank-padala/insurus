@@ -7,7 +7,7 @@ import { Shield, Home, Award, ListChecks, Calendar, Plus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { format, parseISO, isPast } from "date-fns";
+import { format, parseISO, isPast, addMonths, subMonths, startOfMonth } from "date-fns";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -17,10 +17,11 @@ export default function DashboardPage() {
   const [properties, setProperties] = useState<any[]>([]);
   const [recentTasks, setRecentTasks] = useState<any[]>([]);
   const [upcomingTasks, setUpcomingTasks] = useState<any[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedMonth]);
 
   // Retry loading tasks if we have properties but no tasks (tasks might still be creating)
   useEffect(() => {
@@ -57,42 +58,44 @@ export default function DashboardPage() {
         .order("created_at", { ascending: false });
       setProperties(props || []);
 
-      // Fetch recent completed tasks
-      const { data: completedTasks } = await supabase
-        .from("tasks")
-        .select(`
-          *,
-          task_checklists!inner(
-            properties!inner(user_id)
-          )
-        `)
-        .eq("task_checklists.properties.user_id", authUser.id)
-        .eq("status", "verified")
-        .order("completed_at", { ascending: false })
-        .limit(5);
-      setRecentTasks(completedTasks || []);
+      // Fetch all tasks using the API endpoint (same as tasks page)
+      const tasksResponse = await fetch("/api/tasks?filter=all");
+      if (tasksResponse.ok) {
+        const allTasks = await tasksResponse.json();
+        
+        // Filter and sort recent completed tasks
+        const completed = allTasks
+          .filter((t: any) => t.status === "verified" || t.status === "completed")
+          .sort((a: any, b: any) => {
+            const aDate = a.completed_at ? new Date(a.completed_at).getTime() : 0;
+            const bDate = b.completed_at ? new Date(b.completed_at).getTime() : 0;
+            return bDate - aDate;
+          })
+          .slice(0, 5);
+        setRecentTasks(completed || []);
 
-      // Fetch upcoming tasks (next 3 due soon)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const nextWeek = new Date(today);
-      nextWeek.setDate(nextWeek.getDate() + 7);
+        // Filter tasks for selected month
+        const monthStart = startOfMonth(selectedMonth);
+        const monthEnd = addMonths(monthStart, 1);
 
-      const { data: upcoming } = await supabase
-        .from("tasks")
-        .select(`
-          *,
-          task_checklists!inner(
-            properties!inner(user_id, address)
-          )
-        `)
-        .eq("task_checklists.properties.user_id", authUser.id)
-        .in("status", ["pending", "in_progress", null])
-        .gte("due_date", today.toISOString().split("T")[0])
-        .lte("due_date", nextWeek.toISOString().split("T")[0])
-        .order("due_date", { ascending: true })
-        .limit(3);
-      setUpcomingTasks(upcoming || []);
+        const upcoming = allTasks
+          .filter((t: any) => {
+            if (!t.due_date) return false;
+            const dueDate = new Date(t.due_date);
+            dueDate.setHours(0, 0, 0, 0);
+            return (
+              (t.status === "pending" || t.status === "in_progress" || t.status === null) &&
+              dueDate >= monthStart &&
+              dueDate < monthEnd
+            );
+          })
+          .sort((a: any, b: any) => {
+            const aDate = a.due_date ? new Date(a.due_date).getTime() : 0;
+            const bDate = b.due_date ? new Date(b.due_date).getTime() : 0;
+            return aDate - bDate;
+          });
+        setUpcomingTasks(upcoming || []);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
@@ -247,16 +250,51 @@ export default function DashboardPage() {
         )}
 
         {/* Upcoming Tasks */}
-        {upcomingTasks && upcomingTasks.length > 0 && (
-          <div className="bg-card p-4 sm:p-6 rounded-xl shadow-card">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-heading font-bold text-foreground">
-                Upcoming Tasks
-              </h2>
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/tasks">View All</Link>
-              </Button>
+        <div className="bg-card p-4 sm:p-6 rounded-xl shadow-card">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-heading font-bold text-foreground">
+              Tasks for {format(selectedMonth, "MMMM yyyy")}
+            </h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/tasks">View All</Link>
+            </Button>
+          </div>
+
+          {/* Month Navigation */}
+          <div className="mb-4 flex items-center justify-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+            >
+              <Calendar className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <div className="px-4 py-2 bg-muted rounded-lg border border-border min-w-[150px] text-center">
+              <p className="font-semibold text-foreground">
+                {format(selectedMonth, "MMMM yyyy")}
+              </p>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}
+            >
+              Next
+              <Calendar className="w-4 h-4 ml-1" />
+            </Button>
+            {format(selectedMonth, "yyyy-MM") !== format(new Date(), "yyyy-MM") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMonth(new Date())}
+              >
+                Current Month
+              </Button>
+            )}
+          </div>
+
+          {upcomingTasks && upcomingTasks.length > 0 ? (
             <div className="space-y-3">
               {upcomingTasks.map((task: any) => {
                 const checklist = Array.isArray(task.task_checklists)
@@ -302,8 +340,15 @@ export default function DashboardPage() {
                 );
               })}
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="text-center py-8">
+              <ListChecks className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                No tasks for {format(selectedMonth, "MMMM yyyy")}
+              </p>
+            </div>
+          )}
+        </div>
 
         {(!recentTasks || recentTasks.length === 0) && (!upcomingTasks || upcomingTasks.length === 0) && (
           <div className="bg-card p-8 sm:p-12 rounded-xl shadow-card text-center">

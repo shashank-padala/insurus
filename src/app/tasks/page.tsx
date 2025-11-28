@@ -17,7 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { format, isPast, parseISO, startOfMonth, compareAsc } from "date-fns";
+import { format, isPast, parseISO, startOfMonth, compareAsc, addMonths, subMonths } from "date-fns";
 
 type TaskFilter = "all" | "pending" | "completed" | "overdue";
 
@@ -28,6 +28,7 @@ export default function TasksPage() {
   const [tasks, setTasks] = useState<any[]>([]);
   const [filter, setFilter] = useState<TaskFilter>("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
   useEffect(() => {
     loadTasks();
@@ -117,46 +118,38 @@ export default function TasksPage() {
     return property?.address || "Unknown Property";
   };
 
-  // Group tasks by month
-  const groupTasksByMonth = (tasks: any[]) => {
-    const grouped: { [key: string]: { label: string; date: Date; tasks: any[] } } = {};
-    const unscheduled: any[] = [];
-
-    tasks.forEach((task) => {
-      if (!task.due_date) {
-        unscheduled.push(task);
-        return;
-      }
-
+  // Filter tasks by selected month
+  const getTasksForSelectedMonth = (tasks: any[]) => {
+    const monthStart = startOfMonth(selectedMonth);
+    const monthEnd = addMonths(monthStart, 1);
+    
+    return tasks.filter((task) => {
+      if (!task.due_date) return false; // Exclude unscheduled tasks from month view
       const dueDate = parseISO(task.due_date);
-      const monthKey = format(startOfMonth(dueDate), "yyyy-MM");
-      const monthLabel = format(startOfMonth(dueDate), "MMMM yyyy");
+      return dueDate >= monthStart && dueDate < monthEnd;
+    }).sort((a: any, b: any) => {
+      const dateA = parseISO(a.due_date);
+      const dateB = parseISO(b.due_date);
+      return compareAsc(dateA, dateB);
+    });
+  };
 
-      if (!grouped[monthKey]) {
-        grouped[monthKey] = {
-          label: monthLabel,
-          date: startOfMonth(dueDate),
-          tasks: [],
-        };
+  // Get available months from tasks
+  const getAvailableMonths = (tasks: any[]) => {
+    const months = new Set<string>();
+    tasks.forEach((task) => {
+      if (task.due_date) {
+        const monthKey = format(startOfMonth(parseISO(task.due_date)), "yyyy-MM");
+        months.add(monthKey);
       }
-      grouped[monthKey].tasks.push(task);
     });
-
-    // Sort tasks within each month by due date
-    Object.keys(grouped).forEach((key) => {
-      grouped[key].tasks.sort((a: any, b: any) => {
-        const dateA = parseISO(a.due_date);
-        const dateB = parseISO(b.due_date);
-        return compareAsc(dateA, dateB);
-      });
-    });
-
-    // Convert to array and sort by month date
-    const sortedGroups = Object.values(grouped).sort((a, b) =>
-      compareAsc(a.date, b.date)
-    );
-
-    return { grouped: sortedGroups, unscheduled };
+    
+    return Array.from(months)
+      .map(key => {
+        const [year, month] = key.split('-').map(Number);
+        return new Date(year, month - 1, 1);
+      })
+      .sort((a, b) => compareAsc(a, b));
   };
 
   if (loading) {
@@ -180,6 +173,42 @@ export default function TasksPage() {
           <p className="text-muted-foreground">
             Complete safety tasks to earn points and improve your safety score
           </p>
+        </div>
+
+        {/* Month Selector */}
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+            >
+              <Calendar className="w-4 h-4 mr-1" />
+              Previous
+            </Button>
+            <div className="px-4 py-2 bg-card rounded-lg border border-border min-w-[150px] text-center">
+              <p className="font-semibold text-foreground">
+                {format(selectedMonth, "MMMM yyyy")}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}
+            >
+              Next
+              <Calendar className="w-4 h-4 ml-1" />
+            </Button>
+            {format(selectedMonth, "yyyy-MM") !== format(new Date(), "yyyy-MM") && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMonth(new Date())}
+              >
+                Today
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Filter Tabs */}
@@ -212,26 +241,37 @@ export default function TasksPage() {
           </div>
         ) : (
           (() => {
-            const { grouped, unscheduled } = groupTasksByMonth(tasks);
+            const monthTasks = getTasksForSelectedMonth(tasks);
+            
+            if (monthTasks.length === 0) {
+              return (
+                <div className="bg-card p-12 rounded-xl shadow-card text-center">
+                  <Calendar className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-heading font-bold text-card-foreground mb-2">
+                    No tasks for {format(selectedMonth, "MMMM yyyy")}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Try selecting a different month or add a property to get started.
+                  </p>
+                  <Button variant="outline" onClick={() => setSelectedMonth(new Date())}>
+                    Go to Current Month
+                  </Button>
+                </div>
+              );
+            }
             
             return (
-              <div className="space-y-6">
-                {/* Grouped tasks by month */}
-                {grouped.map((group) => (
-                  <div key={group.label} className="space-y-3">
-                    {/* Month Header */}
-                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b border-border">
-                      <h2 className="text-xl font-heading font-semibold text-foreground">
-                        {group.label}
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {group.tasks.length} {group.tasks.length === 1 ? "task" : "tasks"}
-                      </p>
-                    </div>
+              <div className="space-y-3">
+                {/* Month Summary */}
+                <div className="bg-muted/50 p-4 rounded-lg border border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Showing <span className="font-semibold text-foreground">{monthTasks.length}</span> {monthTasks.length === 1 ? "task" : "tasks"} for {format(selectedMonth, "MMMM yyyy")}
+                  </p>
+                </div>
 
-                    {/* Tasks for this month */}
-                    <div className="space-y-3 pt-2">
-                      {group.tasks.map((task: any) => {
+                {/* Tasks for selected month */}
+                <div className="space-y-3">
+                  {monthTasks.map((task: any) => {
                         const dueDate = task.due_date ? parseISO(task.due_date) : null;
                         const isOverdue = dueDate && isPast(dueDate) && task.status !== "verified" && task.status !== "completed";
                         const canComplete = task.status === "pending" || task.status === null || task.status === "in_progress";
@@ -308,92 +348,6 @@ export default function TasksPage() {
                       })}
                     </div>
                   </div>
-                ))}
-
-                {/* Unscheduled tasks (no due date) */}
-                {unscheduled.length > 0 && (
-                  <div className="space-y-3">
-                    {/* Unscheduled Header */}
-                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b border-border">
-                      <h2 className="text-xl font-heading font-semibold text-foreground">
-                        Unscheduled
-                      </h2>
-                      <p className="text-sm text-muted-foreground">
-                        {unscheduled.length} {unscheduled.length === 1 ? "task" : "tasks"} without due dates
-                      </p>
-                    </div>
-
-                    {/* Unscheduled tasks */}
-                    <div className="space-y-3 pt-2">
-                      {unscheduled.map((task: any) => {
-                        const canComplete = task.status === "pending" || task.status === null || task.status === "in_progress";
-                        
-                        return (
-                          <div
-                            key={task.id}
-                            className="bg-card p-4 sm:p-6 rounded-xl shadow-card hover:shadow-glow transition-all"
-                          >
-                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                              {/* Left: Task Info */}
-                              <div className="flex-1 space-y-3">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1">
-                                    <h3 className="text-lg font-heading font-bold text-card-foreground mb-1">
-                                      {task.task_name}
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground mb-2">
-                                      {task.description}
-                                    </p>
-                                  </div>
-                                  {getStatusBadge(task)}
-                                </div>
-
-                                {/* Task Meta */}
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                  <div className="flex items-center gap-1.5">
-                                    <Home className="w-4 h-4" />
-                                    <span>{getPropertyName(task)}</span>
-                                  </div>
-                                  <div className="flex items-center gap-1.5">
-                                    {getVerificationIcon(task.verification_type || "photo")}
-                                    <span className="capitalize">
-                                      {task.verification_type === "both" ? "Photo or Receipt" : task.verification_type || "Photo"}
-                                    </span>
-                                  </div>
-                                  {task.base_points_value && (
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="font-semibold text-accent">
-                                        +{task.base_points_value} pts
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Right: Action Button */}
-                              {canComplete && (
-                                <div className="flex sm:flex-col gap-2 sm:min-w-[140px]">
-                                  <Button
-                                    variant="hero"
-                                    size="lg"
-                                    className="w-full sm:w-auto min-h-[44px]"
-                                    asChild
-                                  >
-                                    <Link href={`/tasks/${task.id}/complete`}>
-                                      <Camera className="w-5 h-5 mr-2" />
-                                      Complete Task
-                                    </Link>
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
             );
           })()
         )}

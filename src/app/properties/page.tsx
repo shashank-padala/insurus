@@ -42,31 +42,35 @@ export default function PropertiesPage() {
       // Fetch stats for each property
       const stats: Record<string, { activeTasks: number; lastChecklist: string | null }> = {};
       
-      for (const property of props || []) {
-        // Get active tasks count
-        const currentMonth = new Date(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          1
-        ).toISOString().split("T")[0];
+      // Get current month boundaries
+      const now = new Date();
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+      const monthStartStr = monthStart.toISOString().split("T")[0];
+      const monthEndStr = monthEnd.toISOString().split("T")[0];
 
+      for (const property of props || []) {
+        // Get the current month's checklist
         const { data: checklists } = await supabase
           .from("task_checklists")
           .select("id, checklist_month")
           .eq("property_id", property.id)
-          .gte("checklist_month", currentMonth)
+          .gte("checklist_month", monthStartStr)
+          .lte("checklist_month", monthEndStr)
           .order("checklist_month", { ascending: false })
           .limit(1);
 
         const lastChecklist = checklists && checklists.length > 0 ? checklists[0].checklist_month : null;
 
-        // Count active tasks
+        // Count active tasks for current month only (tasks with due_date in current month)
         if (checklists && checklists.length > 0) {
           const { count } = await supabase
             .from("tasks")
             .select("*", { count: "exact", head: true })
             .eq("checklist_id", checklists[0].id)
-            .in("status", ["pending", "in_progress", null]);
+            .in("status", ["pending", "in_progress", null])
+            .gte("due_date", monthStartStr)
+            .lte("due_date", monthEndStr);
 
           stats[property.id] = {
             activeTasks: count || 0,
@@ -189,7 +193,7 @@ export default function PropertiesPage() {
                       <div className="flex items-center gap-2 text-sm">
                         <ListChecks className="w-4 h-4 text-accent" />
                         <span className="text-muted-foreground">
-                          <span className="font-semibold text-foreground">{stats.activeTasks}</span> active tasks
+                          <span className="font-semibold text-foreground">{stats.activeTasks}</span> tasks this month
                         </span>
                       </div>
                     )}
