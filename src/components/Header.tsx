@@ -58,34 +58,34 @@ export const Header = () => {
   return (
     <>
       <header className="hidden md:block w-full gradient-hero relative z-10">
-        <div className="container px-4 mx-auto">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <Shield className="w-6 h-6 text-accent" />
+      <div className="container px-4 mx-auto">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2">
+            <Shield className="w-6 h-6 text-accent" />
               <span className="font-heading font-bold text-xl text-primary-foreground">Insurus</span>
-            </Link>
+          </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center gap-6">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-accent",
-                    isActive(link.href)
-                      ? "text-accent"
+          {/* Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-6">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-accent",
+                  isActive(link.href)
+                    ? "text-accent"
                       : "text-primary-foreground/80"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
 
             {/* Auth Buttons */}
-            <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
               {user ? (
                 <>
                   <Button variant="outline" size="sm" asChild>
@@ -106,43 +106,43 @@ export const Header = () => {
                   onClick={() => setAuthModalOpen(true)}
                 >
                   Get Started
-                </Button>
+            </Button>
               )}
-            </div>
-
-            {/* Mobile Menu Button */}
-            <button
-              className="md:hidden p-2 text-primary-foreground"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
           </div>
 
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
+          {/* Mobile Menu Button */}
+          <button
+              className="md:hidden p-2 text-primary-foreground"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile Navigation */}
+        {mobileMenuOpen && (
             <div className="md:hidden border-t border-primary-foreground/20 py-4">
-              <nav className="flex flex-col gap-4">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "text-base font-medium transition-colors hover:text-accent px-2 py-1",
-                      isActive(link.href)
-                        ? "text-accent"
+            <nav className="flex flex-col gap-4">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cn(
+                    "text-base font-medium transition-colors hover:text-accent px-2 py-1",
+                    isActive(link.href)
+                      ? "text-accent"
                         : "text-primary-foreground/80"
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                  )}
+                >
+                  {link.label}
+                </Link>
+              ))}
                 <div className="pt-2 border-t border-primary-foreground/20 space-y-2">
                   {user ? (
                     <>
@@ -158,8 +158,8 @@ export const Header = () => {
                         >
                           <User className="w-4 h-4 mr-2" />
                           Dashboard
-                        </Link>
-                      </Button>
+                  </Link>
+                </Button>
                       <Button
                         variant="outline"
                         size="sm"
@@ -186,12 +186,12 @@ export const Header = () => {
                       Get Started
                     </Button>
                   )}
-                </div>
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+              </div>
+            </nav>
+          </div>
+        )}
+      </div>
+    </header>
       <AuthModal
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}

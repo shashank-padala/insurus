@@ -170,16 +170,16 @@ function RegisterForm() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
+                <Input
+                  id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Create a strong password"
-                    required
-                    value={formData.password}
-                    onChange={(e) =>
-                      setFormData({ ...formData, password: e.target.value })
-                    }
-                    disabled={loading}
+                  required
+                  value={formData.password}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
+                  disabled={loading}
                     className="pr-10"
                   />
                   <button
@@ -200,16 +200,16 @@ function RegisterForm() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Confirm Password</Label>
                 <div className="relative">
-                  <Input
-                    id="confirmPassword"
+                <Input
+                  id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Re-enter your password"
-                    required
-                    value={formData.confirmPassword}
-                    onChange={(e) =>
-                      setFormData({ ...formData, confirmPassword: e.target.value })
-                    }
-                    disabled={loading}
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) =>
+                    setFormData({ ...formData, confirmPassword: e.target.value })
+                  }
+                  disabled={loading}
                     className="pr-10"
                   />
                   <button

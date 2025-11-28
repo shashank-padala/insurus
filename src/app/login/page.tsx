@@ -81,14 +81,14 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Input
-                    id="password"
+                <Input
+                  id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={loading}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                     className="pr-10"
                   />
                   <button
