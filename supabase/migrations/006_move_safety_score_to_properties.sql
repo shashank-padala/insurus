@@ -25,6 +25,9 @@ SET safety_score = COALESCE((
   WHERE tc.property_id = properties.id
 ), 0);
 
+-- Drop the trigger that depends on safety_score column
+DROP TRIGGER IF EXISTS log_safety_score_changes ON public.users;
+
 -- Remove safety_score and last_safety_score_reset from users table
 ALTER TABLE public.users 
 DROP COLUMN IF EXISTS safety_score,
