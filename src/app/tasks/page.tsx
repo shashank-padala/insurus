@@ -17,7 +17,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { format, isPast, parseISO } from "date-fns";
+import { format, isPast, parseISO, startOfMonth, compareAsc } from "date-fns";
 
 type TaskFilter = "all" | "pending" | "in_progress" | "completed" | "overdue";
 
@@ -117,6 +117,48 @@ export default function TasksPage() {
     return property?.address || "Unknown Property";
   };
 
+  // Group tasks by month
+  const groupTasksByMonth = (tasks: any[]) => {
+    const grouped: { [key: string]: any[] } = {};
+    const unscheduled: any[] = [];
+
+    tasks.forEach((task) => {
+      if (!task.due_date) {
+        unscheduled.push(task);
+        return;
+      }
+
+      const dueDate = parseISO(task.due_date);
+      const monthKey = format(startOfMonth(dueDate), "yyyy-MM");
+      const monthLabel = format(startOfMonth(dueDate), "MMMM yyyy");
+
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = {
+          label: monthLabel,
+          date: startOfMonth(dueDate),
+          tasks: [],
+        };
+      }
+      grouped[monthKey].tasks.push(task);
+    });
+
+    // Sort tasks within each month by due date
+    Object.keys(grouped).forEach((key) => {
+      grouped[key].tasks.sort((a: any, b: any) => {
+        const dateA = parseISO(a.due_date);
+        const dateB = parseISO(b.due_date);
+        return compareAsc(dateA, dateB);
+      });
+    });
+
+    // Convert to array and sort by month date
+    const sortedGroups = Object.values(grouped).sort((a, b) =>
+      compareAsc(a.date, b.date)
+    );
+
+    return { grouped: sortedGroups, unscheduled };
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -170,83 +212,191 @@ export default function TasksPage() {
             )}
           </div>
         ) : (
-          <div className="space-y-3">
-            {tasks.map((task: any) => {
-              const dueDate = task.due_date ? parseISO(task.due_date) : null;
-              const isOverdue = dueDate && isPast(dueDate) && task.status !== "verified" && task.status !== "completed";
-              const canComplete = task.status === "pending" || task.status === null || task.status === "in_progress";
-              
-              return (
-                <div
-                  key={task.id}
-                  className="bg-card p-4 sm:p-6 rounded-xl shadow-card hover:shadow-glow transition-all"
-                >
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    {/* Left: Task Info */}
-                    <div className="flex-1 space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-heading font-bold text-card-foreground mb-1">
-                            {task.task_name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {task.description}
-                          </p>
-                        </div>
-                        {getStatusBadge(task)}
-                      </div>
-
-                      {/* Task Meta */}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Home className="w-4 h-4" />
-                          <span>{getPropertyName(task)}</span>
-                        </div>
-                        {dueDate && (
-                          <div className="flex items-center gap-1.5">
-                            <Calendar className="w-4 h-4" />
-                            <span className={isOverdue ? "text-red-600 font-medium" : ""}>
-                              {format(dueDate, "MMM d, yyyy")}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-center gap-1.5">
-                          {getVerificationIcon(task.verification_type || "photo")}
-                          <span className="capitalize">
-                            {task.verification_type === "both" ? "Photo or Receipt" : task.verification_type || "Photo"}
-                          </span>
-                        </div>
-                        {task.base_points_value && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-semibold text-accent">
-                              +{task.base_points_value} pts
-                            </span>
-                          </div>
-                        )}
-                      </div>
+          (() => {
+            const { grouped, unscheduled } = groupTasksByMonth(tasks);
+            
+            return (
+              <div className="space-y-6">
+                {/* Grouped tasks by month */}
+                {grouped.map((group) => (
+                  <div key={group.label} className="space-y-3">
+                    {/* Month Header */}
+                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b border-border">
+                      <h2 className="text-xl font-heading font-semibold text-foreground">
+                        {group.label}
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {group.tasks.length} {group.tasks.length === 1 ? "task" : "tasks"}
+                      </p>
                     </div>
 
-                    {/* Right: Action Button */}
-                    {canComplete && (
-                      <div className="flex sm:flex-col gap-2 sm:min-w-[140px]">
-                        <Button
-                          variant="hero"
-                          size="lg"
-                          className="w-full sm:w-auto min-h-[44px]"
-                          asChild
-                        >
-                          <Link href={`/tasks/${task.id}/complete`}>
-                            <Camera className="w-5 h-5 mr-2" />
-                            Complete Task
-                          </Link>
-                        </Button>
-                      </div>
-                    )}
+                    {/* Tasks for this month */}
+                    <div className="space-y-3 pt-2">
+                      {group.tasks.map((task: any) => {
+                        const dueDate = task.due_date ? parseISO(task.due_date) : null;
+                        const isOverdue = dueDate && isPast(dueDate) && task.status !== "verified" && task.status !== "completed";
+                        const canComplete = task.status === "pending" || task.status === null || task.status === "in_progress";
+                        
+                        return (
+                          <div
+                            key={task.id}
+                            className="bg-card p-4 sm:p-6 rounded-xl shadow-card hover:shadow-glow transition-all"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                              {/* Left: Task Info */}
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-heading font-bold text-card-foreground mb-1">
+                                      {task.task_name}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {task.description}
+                                    </p>
+                                  </div>
+                                  {getStatusBadge(task)}
+                                </div>
+
+                                {/* Task Meta */}
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1.5">
+                                    <Home className="w-4 h-4" />
+                                    <span>{getPropertyName(task)}</span>
+                                  </div>
+                                  {dueDate && (
+                                    <div className="flex items-center gap-1.5">
+                                      <Calendar className="w-4 h-4" />
+                                      <span className={isOverdue ? "text-red-600 font-medium" : ""}>
+                                        {format(dueDate, "MMM d, yyyy")}
+                                      </span>
+                                    </div>
+                                  )}
+                                  <div className="flex items-center gap-1.5">
+                                    {getVerificationIcon(task.verification_type || "photo")}
+                                    <span className="capitalize">
+                                      {task.verification_type === "both" ? "Photo or Receipt" : task.verification_type || "Photo"}
+                                    </span>
+                                  </div>
+                                  {task.base_points_value && (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-semibold text-accent">
+                                        +{task.base_points_value} pts
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Right: Action Button */}
+                              {canComplete && (
+                                <div className="flex sm:flex-col gap-2 sm:min-w-[140px]">
+                                  <Button
+                                    variant="hero"
+                                    size="lg"
+                                    className="w-full sm:w-auto min-h-[44px]"
+                                    asChild
+                                  >
+                                    <Link href={`/tasks/${task.id}/complete`}>
+                                      <Camera className="w-5 h-5 mr-2" />
+                                      Complete Task
+                                    </Link>
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                ))}
+
+                {/* Unscheduled tasks (no due date) */}
+                {unscheduled.length > 0 && (
+                  <div className="space-y-3">
+                    {/* Unscheduled Header */}
+                    <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 border-b border-border">
+                      <h2 className="text-xl font-heading font-semibold text-foreground">
+                        Unscheduled
+                      </h2>
+                      <p className="text-sm text-muted-foreground">
+                        {unscheduled.length} {unscheduled.length === 1 ? "task" : "tasks"} without due dates
+                      </p>
+                    </div>
+
+                    {/* Unscheduled tasks */}
+                    <div className="space-y-3 pt-2">
+                      {unscheduled.map((task: any) => {
+                        const canComplete = task.status === "pending" || task.status === null || task.status === "in_progress";
+                        
+                        return (
+                          <div
+                            key={task.id}
+                            className="bg-card p-4 sm:p-6 rounded-xl shadow-card hover:shadow-glow transition-all"
+                          >
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                              {/* Left: Task Info */}
+                              <div className="flex-1 space-y-3">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="flex-1">
+                                    <h3 className="text-lg font-heading font-bold text-card-foreground mb-1">
+                                      {task.task_name}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {task.description}
+                                    </p>
+                                  </div>
+                                  {getStatusBadge(task)}
+                                </div>
+
+                                {/* Task Meta */}
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1.5">
+                                    <Home className="w-4 h-4" />
+                                    <span>{getPropertyName(task)}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5">
+                                    {getVerificationIcon(task.verification_type || "photo")}
+                                    <span className="capitalize">
+                                      {task.verification_type === "both" ? "Photo or Receipt" : task.verification_type || "Photo"}
+                                    </span>
+                                  </div>
+                                  {task.base_points_value && (
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="font-semibold text-accent">
+                                        +{task.base_points_value} pts
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Right: Action Button */}
+                              {canComplete && (
+                                <div className="flex sm:flex-col gap-2 sm:min-w-[140px]">
+                                  <Button
+                                    variant="hero"
+                                    size="lg"
+                                    className="w-full sm:w-auto min-h-[44px]"
+                                    asChild
+                                  >
+                                    <Link href={`/tasks/${task.id}/complete`}>
+                                      <Camera className="w-5 h-5 mr-2" />
+                                      Complete Task
+                                    </Link>
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()
         )}
 
         {/* Pull to Refresh Indicator */}

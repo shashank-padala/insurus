@@ -17,21 +17,35 @@ interface DeletePropertyButtonProps {
   propertyId: string;
   propertyAddress: string;
   onDelete?: () => void;
+  onPropertyDeleted?: (propertyId: string, shouldRestore?: boolean) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function DeletePropertyButton({
   propertyId,
   propertyAddress,
   onDelete,
+  onPropertyDeleted,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: DeletePropertyButtonProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Use controlled or internal state
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange || setInternalOpen;
 
   const handleDelete = async () => {
     setError(null);
     setLoading(true);
+
+    // Optimistic update: remove property from UI immediately
+    onPropertyDeleted?.(propertyId);
+    onDelete?.();
 
     try {
       const response = await fetch(`/api/properties/${propertyId}`, {
@@ -44,30 +58,34 @@ export function DeletePropertyButton({
         throw new Error(data.error || "Failed to delete property");
       }
 
-      onDelete?.();
-      router.push("/properties");
-      router.refresh();
-    } catch (error: any) {
-      setError(error.message || "Failed to delete property");
-    } finally {
+      // Success - property already removed optimistically
+      setOpen(false);
       setLoading(false);
+      
+      // Only redirect if we're on the properties page
+      if (window.location.pathname === "/properties") {
+        // Already updated optimistically, no need to refresh
+      } else {
+        router.push("/properties");
+      }
+    } catch (error: any) {
+      // Revert optimistic update on error
+      onPropertyDeleted?.(propertyId, true); // Signal to restore
+      setError(error.message || "Failed to delete property");
+      setLoading(false);
+      // Keep dialog open to show error
     }
   };
 
   return (
-    <>
-      <button
-        onClick={() => {
-          setOpen(true);
-          onDelete?.();
-        }}
-        className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors rounded-md"
-      >
-        <Trash2 className="w-4 h-4" />
-        Delete Property
-      </button>
-
-      <Dialog open={open} onOpenChange={(isOpen) => !loading && setOpen(isOpen)}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!loading) {
+        setOpen(isOpen);
+        if (!isOpen) {
+          setError(null); // Clear error when closing
+        }
+      }
+    }}>
         <DialogContent>
           {loading ? (
             <>
@@ -87,24 +105,28 @@ export function DeletePropertyButton({
           ) : (
             <>
               <DialogHeader>
-                <DialogTitle>Delete Property</DialogTitle>
-                <DialogDescription>
-                  Are you sure you want to delete this property? This action cannot
-                  be undone. All associated data will be permanently deleted, including:
+                <DialogTitle className="text-destructive">Delete Property?</DialogTitle>
+                <DialogDescription className="text-base">
+                  Are you sure you want to delete this property? This action cannot be undone.
                 </DialogDescription>
-                <ul className="list-disc list-inside text-sm text-muted-foreground mt-2 space-y-1">
-                  <li>All safety checklists</li>
-                  <li>All tasks and their completions</li>
-                  <li>All verifications and photos</li>
-                  <li>All rewards and points history</li>
-                  <li>All completion streaks</li>
-                </ul>
               </DialogHeader>
 
               <div className="py-4">
-                <p className="text-sm text-muted-foreground">
-                  Property: <span className="font-medium">{propertyAddress}</span>
-                </p>
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-4">
+                  <p className="text-sm font-medium text-foreground mb-2">
+                    Property: <span className="font-semibold">{propertyAddress}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    All associated data will be permanently deleted:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                    <li>All safety checklists</li>
+                    <li>All tasks and their completions</li>
+                    <li>All verifications and photos</li>
+                    <li>All rewards and points history</li>
+                    <li>All completion streaks</li>
+                  </ul>
+                </div>
               </div>
 
               {error && (
@@ -136,7 +158,6 @@ export function DeletePropertyButton({
           )}
         </DialogContent>
       </Dialog>
-    </>
   );
 }
 

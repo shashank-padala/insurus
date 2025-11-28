@@ -154,7 +154,24 @@ export default function PropertiesPage() {
                       <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded capitalize">
                         {property.property_type}
                       </span>
-                      <PropertyMenu property={property} />
+                      <PropertyMenu 
+                        property={property}
+                        onPropertyDeleted={(propertyId, shouldRestore) => {
+                          if (shouldRestore) {
+                            // Restore property if deletion failed
+                            loadProperties();
+                          } else {
+                            // Optimistically remove property from list
+                            setProperties(prev => prev.filter(p => p.id !== propertyId));
+                            // Remove stats for deleted property
+                            setPropertyStats(prev => {
+                              const newStats = { ...prev };
+                              delete newStats[propertyId];
+                              return newStats;
+                            });
+                          }
+                        }}
+                      />
                     </div>
                   </div>
                   

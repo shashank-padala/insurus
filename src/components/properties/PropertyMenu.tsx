@@ -4,15 +4,17 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { EditPropertyModal } from "./EditPropertyModal";
 import { DeletePropertyButton } from "./DeletePropertyButton";
-import { MoreVertical, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit } from "lucide-react";
 
 interface PropertyMenuProps {
   property: any;
+  onPropertyDeleted?: (propertyId: string, shouldRestore?: boolean) => void;
 }
 
-export function PropertyMenu({ property }: PropertyMenuProps) {
+export function PropertyMenu({ property, onPropertyDeleted }: PropertyMenuProps) {
   const [open, setOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close menu when clicking outside
@@ -35,6 +37,11 @@ export function PropertyMenu({ property }: PropertyMenuProps) {
   const handleEdit = () => {
     setOpen(false);
     setEditModalOpen(true);
+  };
+
+  const handleDeleteClick = () => {
+    setOpen(false);
+    setDeleteDialogOpen(true);
   };
 
   return (
@@ -60,13 +67,12 @@ export function PropertyMenu({ property }: PropertyMenuProps) {
               Edit Property
             </button>
             <div className="border-t border-border my-1" />
-            <div className="px-1">
-              <DeletePropertyButton
-                propertyId={property.id}
-                propertyAddress={property.address}
-                onDelete={() => setOpen(false)}
-              />
-            </div>
+            <button
+              onClick={handleDeleteClick}
+              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+            >
+              Delete Property
+            </button>
           </div>
         )}
       </div>
@@ -75,6 +81,14 @@ export function PropertyMenu({ property }: PropertyMenuProps) {
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
         property={property}
+      />
+
+      <DeletePropertyButton
+        propertyId={property.id}
+        propertyAddress={property.address}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onPropertyDeleted={onPropertyDeleted}
       />
     </>
   );
