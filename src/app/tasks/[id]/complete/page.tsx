@@ -158,6 +158,11 @@ export default function CompleteTaskPage({
       const verified = verification?.is_verified || false;
       setIsVerified(verified);
       
+      // If verification failed, show the rejection reason
+      if (!verified && verification?.rejection_reason) {
+        throw new Error(verification.rejection_reason);
+      }
+      
       // Get points from the response
       if (verified) {
         setPointsEarned(data.pointsEarned || data.task?.points_earned || null);
