@@ -49,3 +49,4 @@ CREATE POLICY "Users can update own verifications" ON public.verifications
     )
   );
 
+

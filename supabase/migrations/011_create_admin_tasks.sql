@@ -66,3 +66,4 @@ USING (auth.uid() = user_id);
 -- Note: Admin operations (INSERT, UPDATE, DELETE) will be handled via service role
 -- or through API routes with admin authentication
 
+

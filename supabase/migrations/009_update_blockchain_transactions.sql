@@ -23,3 +23,4 @@ ON public.blockchain_transactions(event_type);
 CREATE INDEX IF NOT EXISTS idx_blockchain_transactions_property_id 
 ON public.blockchain_transactions(property_id);
 
+
