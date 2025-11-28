@@ -136,6 +136,39 @@ export default function DeliverySummaryPage() {
               </ul>
             </div>
           </div>
+
+          <div className="mt-6 bg-card p-6 rounded-xl shadow-card">
+            <h3 className="text-xl font-heading font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-accent" />
+              Admin Dashboard Features
+            </h3>
+            <ul className="space-y-2 text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Password-protected admin authentication</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Comprehensive statistics dashboard (users, properties, tasks, points)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Promotional banner management (create, edit, hide/show, delete)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Admin task creation that pushes tasks to all users with deadlines</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Promotional banners displayed on authenticated pages</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <span>Session-based admin authentication with HTTP-only cookies</span>
+              </li>
+            </ul>
+          </div>
         </section>
 
         {/* Application Routes */}
@@ -211,6 +244,22 @@ export default function DeliverySummaryPage() {
                 </div>
               </div>
             </div>
+
+            <div className="mt-6 bg-card p-6 rounded-xl shadow-card">
+              <h3 className="text-xl font-heading font-semibold text-foreground mb-4">
+                Admin Pages
+              </h3>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <code className="bg-muted px-2 py-1 rounded text-foreground">/admin/login</code>
+                  <span className="text-muted-foreground">Admin login (password-protected)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="bg-muted px-2 py-1 rounded text-foreground">/admin/dashboard</code>
+                  <span className="text-muted-foreground">Admin dashboard (stats, banners, tasks)</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-6 bg-card p-6 rounded-xl shadow-card">
@@ -241,6 +290,40 @@ export default function DeliverySummaryPage() {
                   <div><code className="bg-muted px-1 py-0.5 rounded">POST /api/storage/upload</code></div>
                   <div><code className="bg-muted px-1 py-0.5 rounded">POST /api/blockchain/publish</code></div>
                   <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/rewards/stats</code></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-card p-6 rounded-xl shadow-card">
+              <h3 className="text-xl font-heading font-semibold text-foreground mb-4">
+                Admin API Routes
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Authentication</h4>
+                  <div className="space-y-1 text-muted-foreground">
+                    <div><code className="bg-muted px-1 py-0.5 rounded">POST /api/admin/auth</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">DELETE /api/admin/auth</code></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Banners</h4>
+                  <div className="space-y-1 text-muted-foreground">
+                    <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/admin/banners</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">POST /api/admin/banners</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">PATCH /api/admin/banners</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">DELETE /api/admin/banners</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/admin/banners/list</code></div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground mb-2">Admin Operations</h4>
+                  <div className="space-y-1 text-muted-foreground">
+                    <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/admin/stats</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/admin/tasks</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">POST /api/admin/tasks</code></div>
+                    <div><code className="bg-muted px-1 py-0.5 rounded">GET /api/admin/categories</code></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -329,6 +412,16 @@ export default function DeliverySummaryPage() {
                   <div>VECHAIN_WALLET_ADDRESS=your_testnet_wallet_address</div>
                 </div>
               </div>
+
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">Admin Dashboard</h3>
+                <div className="bg-muted p-4 rounded-lg font-mono text-sm">
+                  <div>ADMIN_PASSWORD=your_admin_password</div>
+                </div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Password for accessing the admin dashboard at <code className="bg-muted px-1 py-0.5 rounded">/admin/login</code>
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -359,6 +452,8 @@ export default function DeliverySummaryPage() {
               <li><code className="bg-muted px-2 py-1 rounded">007_add_task_evidence_bucket.sql</code> - Task evidence bucket</li>
               <li><code className="bg-muted px-2 py-1 rounded">008_add_verifications_insert_policy.sql</code> - RLS policy for verifications</li>
               <li><code className="bg-muted px-2 py-1 rounded">009_update_blockchain_transactions.sql</code> - Blockchain transactions update</li>
+              <li><code className="bg-muted px-2 py-1 rounded">010_create_promotional_banners.sql</code> - Promotional banners table</li>
+              <li><code className="bg-muted px-2 py-1 rounded">011_create_admin_tasks.sql</code> - Admin tasks and user admin tasks tables</li>
             </ol>
           </div>
         </section>
@@ -486,4 +581,5 @@ export default function DeliverySummaryPage() {
     </div>
   );
 }
+
 
