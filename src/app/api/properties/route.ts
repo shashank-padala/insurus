@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { generateSafetyChecklist } from "@/lib/ai/task-generation";
 import { Database } from "@/types/database";
+import { publishPropertyRegistration, hashFile } from "@/lib/blockchain/vechain";
 
 type PropertyRow = Database["public"]["Tables"]["properties"]["Row"];
 
@@ -70,9 +71,10 @@ export async function POST(request: Request) {
 
     if (error) throw error;
 
+    const typedProperty = property as PropertyRow;
+
     // Automatically generate tasks for 1 year from property registration
     try {
-      const typedProperty = property as PropertyRow;
       const propertyCreatedAt = new Date(property.created_at);
       
       // First task due date = property registration + 30 days minimum
@@ -343,6 +345,55 @@ export async function POST(request: Request) {
     } catch (checklistError: any) {
       console.error("Error generating checklist:", checklistError);
       // Continue even if checklist generation fails - property is still created
+    }
+
+    // Publish property registration to VeChain blockchain (async, don't block)
+    try {
+      const propertyMetadata = {
+        propertyId: property.id,
+        userId: user.id,
+        address: typedProperty.address,
+        city: typedProperty.city,
+        state: typedProperty.state,
+        country: typedProperty.country,
+        propertyType: typedProperty.property_type,
+        safetyDevices: (typedProperty.safety_devices as string[]) || [],
+        registeredAt: property.created_at,
+      };
+
+      const txHash = await publishPropertyRegistration(propertyMetadata);
+
+      // Create blockchain transaction record
+      await (supabase.from("blockchain_transactions") as any).insert({
+        task_id: null,
+        user_id: user.id,
+        property_id: property.id,
+        vechain_tx_hash: txHash,
+        metadata: propertyMetadata,
+        status: "pending",
+        event_type: "property_registration",
+      });
+    } catch (blockchainError: any) {
+      // Log error but don't fail property creation
+      console.error("Failed to publish property registration to blockchain:", blockchainError);
+      // Optionally create a failed transaction record
+      try {
+        await (supabase.from("blockchain_transactions") as any).insert({
+          task_id: null,
+          user_id: user.id,
+          property_id: property.id,
+          vechain_tx_hash: `failed-${Date.now()}`,
+          metadata: {
+            propertyId: property.id,
+            userId: user.id,
+            error: blockchainError.message,
+          },
+          status: "failed",
+          event_type: "property_registration",
+        });
+      } catch (recordError) {
+        console.error("Failed to record blockchain error:", recordError);
+      }
     }
 
     return NextResponse.json(property, { status: 201 });

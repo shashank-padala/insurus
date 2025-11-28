@@ -6,6 +6,7 @@ import {
   calculateSafetyScorePercentage,
 } from "@/lib/rewards/points-calculation";
 import { getCurrentTier } from "@/constants/rewards-system";
+import { publishTaskCompletion, hashFile } from "@/lib/blockchain/vechain";
 
 export async function POST(
   request: Request,
@@ -182,32 +183,66 @@ export async function POST(
           .eq("id", propertyId);
       }
 
-      // Blockchain integration disabled - will be added later
-      // TODO: Re-enable blockchain publishing when ready
-      /*
-      // Queue blockchain transaction (publish asynchronously)
-      // This will be handled by a background job or called separately
+      // Publish task completion to VeChain blockchain (async, don't block)
       try {
-        const publishResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/blockchain/publish`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Cookie: request.headers.get("Cookie") || "",
-            },
-            body: JSON.stringify({ taskId: id }),
-          }
-        );
-        // Don't fail if blockchain publish fails
-        if (!publishResponse.ok) {
-          console.warn("Failed to publish to blockchain:", await publishResponse.text());
+        // Hash photos/receipts if available
+        let photoHash: string | undefined;
+        let receiptHash: string | undefined;
+
+        if (photoUrl) {
+          photoHash = await hashFile(photoUrl);
         }
-      } catch (blockchainError) {
-        console.warn("Blockchain publish error:", blockchainError);
-        // Continue even if blockchain publish fails
+        if (receiptUrl) {
+          receiptHash = await hashFile(receiptUrl);
+        }
+
+        const taskMetadata = {
+          taskId: id,
+          propertyId: propertyId!,
+          userId: user.id,
+          taskName: task.task_name,
+          completedAt: new Date().toISOString(),
+          photoHash,
+          receiptHash,
+          verificationConfidence: result.confidence,
+          pointsEarned: pointsBreakdown.totalPoints,
+          basePoints: pointsBreakdown.basePoints,
+        };
+
+        const txHash = await publishTaskCompletion(taskMetadata);
+
+        // Create blockchain transaction record
+        await (supabase.from("blockchain_transactions") as any).insert({
+          task_id: id,
+          user_id: user.id,
+          property_id: propertyId,
+          vechain_tx_hash: txHash,
+          metadata: taskMetadata,
+          status: "pending",
+          event_type: "task_completion",
+        });
+      } catch (blockchainError: any) {
+        // Log error but don't fail task completion
+        console.error("Failed to publish task completion to blockchain:", blockchainError);
+        // Optionally create a failed transaction record
+        try {
+          await (supabase.from("blockchain_transactions") as any).insert({
+            task_id: id,
+            user_id: user.id,
+            property_id: propertyId,
+            vechain_tx_hash: `failed-${Date.now()}`,
+            metadata: {
+              taskId: id,
+              userId: user.id,
+              error: blockchainError.message,
+            },
+            status: "failed",
+            event_type: "task_completion",
+          });
+        } catch (recordError) {
+          console.error("Failed to record blockchain error:", recordError);
+        }
       }
-      */
     }
 
     // Get points earned if task was verified

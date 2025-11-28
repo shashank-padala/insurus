@@ -29,6 +29,25 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
+## Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+### Supabase
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+
+### OpenAI
+- `OPENAI_API_KEY` - Your OpenAI API key for AI verification
+
+### VeChain Blockchain (Testnet)
+- `VECHAIN_NETWORK=testnet` - Network to use (testnet or mainnet)
+- `VECHAIN_TESTNET_URL=https://testnet.vechain.org` - VeChain testnet endpoint
+- `VECHAIN_PRIVATE_KEY` - Private key of testnet wallet (generate from VeChain wallet)
+- `VECHAIN_WALLET_ADDRESS` - Address of testnet wallet
+
+**Note**: For VeChain testnet, you can get free testnet tokens from the VeChain faucet. The current implementation uses a placeholder that creates transaction hashes. To enable full VeChain integration, install the VeChain SDK packages and update the implementation in `src/lib/blockchain/vechain.ts`.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.

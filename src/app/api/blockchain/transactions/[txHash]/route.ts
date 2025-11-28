@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
-import { getVeChainClient } from "@/lib/blockchain/vechain";
 
 export async function GET(
   request: Request,
@@ -32,39 +31,13 @@ export async function GET(
       );
     }
 
-    // Check transaction status on VeChain
-    try {
-      const client = getVeChainClient();
-      const receipt = await client.transactions.getTransactionReceipt(txHash);
-
-      if (receipt) {
-        const isConfirmed = receipt.meta?.blockNumber !== undefined;
-        const confirmedAt = receipt.meta?.blockTimestamp
-          ? new Date(receipt.meta.blockTimestamp * 1000).toISOString()
-          : null;
-
-        // Update transaction status if changed
-        if ((transaction as any).status !== "confirmed" && isConfirmed) {
-          await (supabase
-            .from("blockchain_transactions") as any)
-            .update({
-              status: "confirmed",
-              confirmed_at: confirmedAt,
-            })
-            .eq("id", transaction.id);
-        }
-
-        return NextResponse.json({
-          ...(transaction as any),
-          status: isConfirmed ? "confirmed" : "pending",
-          confirmedAt,
-          receipt,
-        });
-      }
-    } catch (chainError) {
-      console.error("Error checking blockchain:", chainError);
-      // Return database record even if blockchain check fails
-    }
+    // Check transaction status on VeChain (optional - can be implemented with VeChain SDK)
+    // For now, return the database record
+    // TODO: Implement VeChain transaction receipt checking when SDK is fully integrated
+    // This would involve:
+    // 1. Querying VeChain testnet for transaction receipt
+    // 2. Updating status from 'pending' to 'confirmed' if transaction is confirmed
+    // 3. Storing confirmed_at timestamp
 
     return NextResponse.json(transaction as any);
   } catch (error: any) {
