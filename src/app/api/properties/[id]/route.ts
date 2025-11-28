@@ -89,16 +89,43 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { error } = await supabase
+    // First, verify the property exists and belongs to the user
+    const { data: property, error: fetchError } = await supabase
+      .from("properties")
+      .select("id, address")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .single();
+
+    if (fetchError || !property) {
+      return NextResponse.json(
+        { error: "Property not found" },
+        { status: 404 }
+      );
+    }
+
+    // Delete the property - CASCADE will automatically delete:
+    // - task_checklists (which cascades to tasks)
+    // - tasks (which cascades to verifications and rewards)
+    // - task_completion_streaks
+    // - blockchain_transactions
+    const { error: deleteError } = await supabase
       .from("properties")
       .delete()
       .eq("id", id)
       .eq("user_id", user.id);
 
-    if (error) throw error;
+    if (deleteError) {
+      console.error("Error deleting property:", deleteError);
+      throw deleteError;
+    }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ 
+      success: true,
+      message: "Property and all associated data deleted successfully"
+    });
   } catch (error: any) {
+    console.error("Failed to delete property:", error);
     return NextResponse.json(
       { error: error.message || "Failed to delete property" },
       { status: 500 }

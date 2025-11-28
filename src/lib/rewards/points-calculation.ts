@@ -1,19 +1,15 @@
 import {
   POINTS_CALCULATION,
-  calculateTaskPoints,
 } from "@/constants/rewards-system";
 
 export interface PointsBreakdown {
   basePoints: number;
-  frequencyMultiplier: number;
-  verificationBonus: number;
-  streakBonus: number;
-  earlyCompletionBonus: number;
   totalPoints: number;
 }
 
 /**
  * Calculate points for a completed task
+ * Simplified: Just returns base points (1-10)
  */
 export function calculatePointsForTask(
   basePoints: number,
@@ -22,48 +18,52 @@ export function calculatePointsForTask(
   consecutiveMonths: number = 0,
   daysEarly: number = 0
 ): PointsBreakdown {
-  const base = POINTS_CALCULATION.basePoints(basePoints);
-  const frequencyMult = POINTS_CALCULATION.frequencyMultiplier[frequency];
-  const verificationBonus =
-    POINTS_CALCULATION.verificationBonus[verificationType];
-  const streakBonus = POINTS_CALCULATION.streakBonus(consecutiveMonths);
-  const earlyBonus = POINTS_CALCULATION.earlyCompletionBonus(daysEarly);
-
-  const totalPoints = Math.floor(
-    base * frequencyMult + verificationBonus + streakBonus + earlyBonus
-  );
+  const totalPoints = POINTS_CALCULATION.basePoints(basePoints);
 
   return {
-    basePoints: base,
-    frequencyMultiplier: frequencyMult,
-    verificationBonus,
-    streakBonus,
-    earlyCompletionBonus: earlyBonus,
+    basePoints: totalPoints,
     totalPoints,
   };
 }
 
 /**
- * Calculate safety score change for a task
+ * Calculate safety score as a percentage (0-100)
+ * Formula: (Completed Tasks / Total Tasks) × 100
+ * This function recalculates the entire safety score for a property
  */
-export function calculateSafetyScoreChange(
-  taskPoints: number,
-  isCompleted: boolean,
-  daysOverdue: number = 0,
-  isMissed: boolean = false
-): number {
-  if (isCompleted) {
-    // Add points based on task importance (1.5x multiplier)
-    return Math.floor(taskPoints * 1.5);
-  } else if (isMissed) {
-    // Deduct 5 points for missed tasks
-    return -5;
-  } else if (daysOverdue > 0) {
-    // Deduct points based on how overdue
-    if (daysOverdue > 30) return -10;
-    if (daysOverdue > 14) return -5;
-    if (daysOverdue > 7) return -3;
+export async function calculateSafetyScorePercentage(
+  supabase: any,
+  propertyId: string
+): Promise<number> {
+  // Get all checklists for this property
+  const { data: checklists } = await supabase
+    .from("task_checklists")
+    .select("id")
+    .eq("property_id", propertyId);
+
+  if (!checklists || checklists.length === 0) {
+    return 0; // No checklists = 0% completion
   }
-  return 0;
+
+  const checklistIds = checklists.map((c: any) => c.id);
+
+  // Get all tasks for these checklists
+  const { data: allTasks } = await supabase
+    .from("tasks")
+    .select("id, status")
+    .in("checklist_id", checklistIds);
+
+  if (!allTasks || allTasks.length === 0) {
+    return 0; // No tasks = 0% completion
+  }
+
+  // Count completed tasks (verified or completed status)
+  const completedTasks = allTasks.filter(
+    (task: any) => task.status === "verified" || task.status === "completed"
+  ).length;
+
+  // Calculate percentage
+  const percentage = Math.round((completedTasks / allTasks.length) * 100);
+  return Math.min(100, Math.max(0, percentage)); // Clamp between 0-100
 }
 

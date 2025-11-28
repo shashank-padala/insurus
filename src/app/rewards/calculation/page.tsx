@@ -6,15 +6,10 @@ import {
   Shield,
   TrendingUp,
   Award,
-  Target,
   CheckCircle,
   ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  SAFETY_SCORE_CALCULATION,
-  POINTS_CALCULATION,
-} from "@/constants/rewards-system";
 
 export default function RewardsCalculationPage() {
   return (
@@ -49,72 +44,39 @@ export default function RewardsCalculationPage() {
           </div>
           
           <p className="text-base sm:text-lg text-muted-foreground mb-6">
-            Each property has its own Safety Score, which measures how well that property is being
-            protected. Safety scores start at 0 and increase as you complete safety tasks for that property.
+            Each property has its own Safety Score, which is a simple percentage (0-100%) showing
+            how many tasks you've completed for that property. The formula is simple:
           </p>
           
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div className="space-y-4">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-accent" />
-                Score Increases
-              </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-start">
-                  <span className="text-accent mr-2">•</span>
-                  <span>
-                    <strong>Completed Tasks:</strong> +{SAFETY_SCORE_CALCULATION.completedTaskBonus(10)} points per task (based on importance)
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-2">•</span>
-                  <span>
-                    <strong>Completion Streaks:</strong> +{SAFETY_SCORE_CALCULATION.streakBonus(3)} to +{SAFETY_SCORE_CALCULATION.streakBonus(12)} bonus points
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-accent mr-2">•</span>
-                  <span>
-                    <strong>Early Completion:</strong> Bonus points for completing tasks ahead of schedule
-                  </span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground flex items-center gap-2">
-                <Target className="w-5 h-5 text-destructive" />
-                Score Decreases
-              </h3>
-              <ul className="space-y-2 text-muted-foreground">
-                <li className="flex items-start">
-                  <span className="text-destructive mr-2">•</span>
-                  <span>
-                    <strong>Overdue Tasks:</strong> -{Math.abs(SAFETY_SCORE_CALCULATION.overdueTaskPenalty(7))} to -{Math.abs(SAFETY_SCORE_CALCULATION.overdueTaskPenalty(30))} points
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-destructive mr-2">•</span>
-                  <span>
-                    <strong>Missed Tasks:</strong> -{Math.abs(SAFETY_SCORE_CALCULATION.missedTaskPenalty)} points per missed task
-                  </span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-destructive mr-2">•</span>
-                  <span>
-                    <strong>Monthly Reset:</strong> Score carries over at 80% to encourage continuous improvement
-                  </span>
-                </li>
-              </ul>
+          <div className="bg-accent/10 p-4 sm:p-6 rounded-lg mb-6">
+            <p className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-2">
+              Safety Score = (Completed Tasks / Total Tasks) × 100%
+            </p>
+            <p className="text-sm text-muted-foreground">
+              For example: If you have 20 tasks and completed 15, your safety score is 75%.
+            </p>
+          </div>
+          
+          <div className="space-y-4 mb-6">
+            <div className="flex items-start gap-3">
+              <CheckCircle className="w-5 h-5 text-accent mt-0.5" />
+              <div>
+                <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-2">
+                  How It Works
+                </h3>
+                <ul className="space-y-2 text-muted-foreground">
+                  <li>• Safety score starts at 0% when you first add a property</li>
+                  <li>• Each completed task increases your completion percentage</li>
+                  <li>• Score is automatically recalculated when you complete or add tasks</li>
+                  <li>• Score range: 0% (no tasks completed) to 100% (all tasks completed)</li>
+                </ul>
+              </div>
             </div>
           </div>
           
           <div className="bg-muted/50 p-4 sm:p-6 rounded-lg">
             <p className="text-sm text-muted-foreground">
-              <strong>Score Range:</strong> {SAFETY_SCORE_CALCULATION.minScore} - {SAFETY_SCORE_CALCULATION.maxScore} points
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              A higher safety score demonstrates to insurance providers that you're actively
+              <strong>Why It Matters:</strong> A higher safety score demonstrates to insurance providers that you're actively
               maintaining your property, which can lead to better rates and coverage options.
             </p>
           </div>
@@ -132,95 +94,38 @@ export default function RewardsCalculationPage() {
           </div>
           
           <p className="text-base sm:text-lg text-muted-foreground mb-6">
-            Points are awarded when you complete verified safety tasks. The number of points
-            you earn depends on several factors:
+            Points are awarded when you complete verified safety tasks. We keep it simple - 
+            each task is worth its base point value (1-10 points), with no multipliers or bonuses.
           </p>
           
-          <div className="space-y-6">
-            <div className="border-l-4 border-accent pl-4 sm:pl-6">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
-                1. Base Points (Task Importance)
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Each task has a base point value (1-10) based on its importance for insurance
-                risk reduction:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• 9-10 points: Critical safety tasks (smoke detectors, CO detectors, electrical)</li>
-                <li>• 7-8 points: Important prevention tasks (water heater, security systems)</li>
-                <li>• 5-6 points: Regular maintenance tasks (tree trimming, emergency kits)</li>
-                <li>• 3-4 points: Routine checks (lighting, contact lists)</li>
-              </ul>
-              <p className="text-sm text-muted-foreground mt-3">
-                Base points are multiplied by 10, so a task worth 8 points = 80 base points.
-              </p>
-            </div>
-            
-            <div className="border-l-4 border-accent pl-4 sm:pl-6">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
-                2. Frequency Multiplier
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Less frequent tasks earn bonus multipliers:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• Monthly tasks: 1.0x (standard)</li>
-                <li>• Quarterly tasks: 1.1x (+10% bonus)</li>
-                <li>• Annual tasks: 1.2x (+20% bonus for professional services)</li>
-              </ul>
-            </div>
-            
-            <div className="border-l-4 border-accent pl-4 sm:pl-6">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
-                3. Verification Bonus
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Professional services and comprehensive verification earn bonus points:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• Photo only: No bonus</li>
-                <li>• Receipt (professional service): +{POINTS_CALCULATION.verificationBonus.receipt} points</li>
-                <li>• Photo + Receipt: +{POINTS_CALCULATION.verificationBonus.both} points</li>
-              </ul>
-            </div>
-            
-            <div className="border-l-4 border-accent pl-4 sm:pl-6">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
-                4. Completion Streak Bonus
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Consistent task completion earns streak bonuses:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• 3+ consecutive months: +{POINTS_CALCULATION.streakBonus(3)} points</li>
-                <li>• 6+ consecutive months: +{POINTS_CALCULATION.streakBonus(6)} points</li>
-                <li>• 12+ consecutive months: +{POINTS_CALCULATION.streakBonus(12)} points</li>
-              </ul>
-            </div>
-            
-            <div className="border-l-4 border-accent pl-4 sm:pl-6">
-              <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
-                5. Early Completion Bonus
-              </h3>
-              <p className="text-muted-foreground mb-2">
-                Complete tasks ahead of schedule for bonus points:
-              </p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• 3+ days early: +{POINTS_CALCULATION.earlyCompletionBonus(3)} points</li>
-                <li>• 7+ days early: +{POINTS_CALCULATION.earlyCompletionBonus(7)} points</li>
-              </ul>
-            </div>
+          <div className="bg-accent/10 p-4 sm:p-6 rounded-lg mb-6">
+            <h3 className="text-lg sm:text-xl font-heading font-bold text-card-foreground mb-3">
+              Simple Points System
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Each task has a base point value (1-10) based on its importance for insurance risk reduction:
+            </p>
+            <ul className="space-y-2 text-muted-foreground">
+              <li>• <strong>9-10 points:</strong> Critical safety tasks (smoke detectors, CO detectors, electrical inspections)</li>
+              <li>• <strong>7-8 points:</strong> Important prevention tasks (water heater checks, security systems)</li>
+              <li>• <strong>5-6 points:</strong> Regular maintenance tasks (gutter cleaning, tree trimming)</li>
+              <li>• <strong>3-4 points:</strong> Routine checks (lighting, emergency kits)</li>
+            </ul>
+            <p className="text-sm text-muted-foreground mt-4">
+              <strong>That's it!</strong> The base points (1-10) are the final points you earn. 
+              No multipliers, no bonuses - just simple, easy-to-understand points.
+            </p>
           </div>
           
-          <div className="bg-accent/10 p-4 sm:p-6 rounded-lg mt-6 sm:mt-8">
+          <div className="bg-muted/50 p-4 sm:p-6 rounded-lg">
             <h4 className="font-heading font-bold text-card-foreground mb-2">
-              Example Point Calculation
+              Example
             </h4>
             <p className="text-sm text-muted-foreground">
-              Task: Fire Alarm System Inspection (8 base points, annual, receipt verification, 12-month streak)
+              Task: Smoke Detector Test (10 base points)
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              Calculation: (8 × 10) × 1.2 + {POINTS_CALCULATION.verificationBonus.receipt} + {POINTS_CALCULATION.streakBonus(12)} = 96 + 5 + 20 = <strong>121 points</strong>
+              Points Earned: <strong>10 points</strong> (simple and straightforward!)
             </p>
           </div>
         </div>

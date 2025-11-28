@@ -49,7 +49,7 @@ export async function generateSafetyChecklist(
       messages: [
         {
           role: "system",
-          content: `You are an expert in home safety and insurance risk assessment. Generate personalized safety tasks based on property details and USA home insurance industry standards. All tasks MUST have points assigned (1-10) and belong to valid categories.`,
+          content: `You are an expert in home safety and insurance risk assessment. Generate ONLY tasks that USA home insurance providers care about. Base points (1-10) are the final points awarded - no multipliers. Fire safety and equipment checks should be quarterly, not monthly. Keep tasks simple and practical for homeowners.`,
         },
         {
           role: "user",
@@ -112,7 +112,7 @@ function buildTaskGenerationPrompt(
     verificationType: t.verificationType,
   }));
 
-  let prompt = `Generate a comprehensive monthly safety checklist for the following property:
+  let prompt = `You are generating safety tasks for a USA homeowner. Think like a homeowner - what simple tasks prevent insurance claims? Generate ONLY tasks that USA home insurance providers actually care about.
 
 Property Details:
 - Address: ${property.address}, ${property.city}, ${property.state}, ${property.country}
@@ -128,26 +128,39 @@ ${Object.values(RiskCategory).join(", ")}
 Example Task Templates (for reference):
 ${JSON.stringify(templateExamples, null, 2)}
 
-Requirements:
-1. Generate 8-12 tasks appropriate for this property
-2. Each task MUST have:
+CRITICAL REQUIREMENTS:
+1. Generate 10-15 tasks appropriate for this property
+2. Frequency Distribution:
+   - Monthly tasks (30%): Only simple visual checks like security system tests, sump pump tests, plumbing leak checks
+   - Quarterly tasks (50%): Fire safety checks (smoke detectors, fire extinguishers), equipment verification (CO detectors, generators), water damage prevention (gutter cleaning, foundation inspection)
+   - Annual tasks (20%): Professional services (HVAC service, electrical inspection, roof inspection, fire alarm system inspection)
+   - IMPORTANT: Fire safety and equipment verification tasks should be QUARTERLY, not monthly
+
+3. Points System:
+   - Base points (1-10) are the FINAL points awarded - no multipliers or bonuses
+   - Higher points (8-10) for critical safety tasks (smoke detectors, CO detectors, electrical)
+   - Medium points (5-7) for important prevention (water damage, security)
+   - Lower points (3-4) for routine maintenance
+
+4. Each task MUST have:
    - name: Clear, actionable task name
    - description: Detailed description of what to do
-   - category: One of the valid task categories (${Object.values(TaskCategory).join(", ")})
-   - riskCategory: One of the valid risk categories (${Object.values(RiskCategory).join(", ")})
-   - pointsValue: Integer between 1-10 based on insurance risk reduction importance
+   - category: One of the valid task categories
+   - riskCategory: One of the valid risk categories
+   - pointsValue: Integer between 1-10 (this is the final points awarded)
    - frequency: "monthly", "quarterly", "annually", or "as_needed"
    - verificationType: "photo", "receipt", "document", or "both"
-   - insuranceRelevance: Brief explanation of how this affects insurance
+   - insuranceRelevance: Brief explanation of how this prevents insurance claims
    - exampleEvidence: Array of 2-3 example evidence submissions
 
-3. Prioritize tasks based on:
-   - Property location (consider local risks like hurricanes, earthquakes, wildfires)
-   - Property type (house vs apartment)
-   - Existing safety devices
-   - Common insurance claims for this area
+5. Focus on tasks that prevent common insurance claims:
+   - Fire damage (smoke detectors, fire extinguishers, electrical safety)
+   - Water damage (plumbing, sump pumps, gutters)
+   - Theft (security systems, locks)
+   - Wind/storm damage (roof, windows, trees)
+   - Liability (maintenance, safety equipment)
 
-4. Reference existing templates when possible, but customize for this specific property
+6. Keep it simple and practical - homeowners need tasks they can actually complete
 
 ${previousChecklists && previousChecklists.length > 0
     ? `\nPrevious Checklist History:\n${JSON.stringify(previousChecklists.slice(0, 3), null, 2)}\nConsider avoiding recently completed tasks or adjusting based on past performance.`
@@ -163,7 +176,7 @@ Return a JSON object with this structure:
       "category": "fire_safety",
       "riskCategory": "natural_risks",
       "pointsValue": 8,
-      "frequency": "monthly",
+      "frequency": "quarterly",
       "verificationType": "photo",
       "insuranceRelevance": "Explanation",
       "exampleEvidence": ["Example 1", "Example 2"]

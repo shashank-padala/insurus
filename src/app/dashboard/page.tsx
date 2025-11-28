@@ -224,7 +224,7 @@ export default function DashboardPage() {
                     {task.base_points_value && (
                       <div className="text-right ml-4">
                         <p className="text-sm sm:text-base font-bold text-accent">
-                          +{task.base_points_value * 10}
+                          +{task.base_points_value}
                         </p>
                         <p className="text-xs text-muted-foreground">points</p>
                       </div>

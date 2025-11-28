@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { verifyTaskPhoto } from "@/lib/ai/photo-verification";
 import {
   calculatePointsForTask,
-  calculateSafetyScoreChange,
+  calculateSafetyScorePercentage,
 } from "@/lib/rewards/points-calculation";
 import { getCurrentTier } from "@/constants/rewards-system";
 
@@ -113,66 +113,13 @@ export async function POST(
         : checklist.properties;
       const propertyId = checklist.property_id || property?.id;
 
-      // Calculate consecutive months for streak bonus
-      const { data: streakData } = await supabase
-        .from("task_completion_streaks")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("property_id", propertyId)
-        .eq("template_id", task.template_id || "")
-        .single();
-
-      const lastCompleted = streakData?.last_completed_month
-        ? new Date(streakData.last_completed_month)
-        : null;
-      const currentMonth = new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-      );
-      const isConsecutive =
-        lastCompleted &&
-        lastCompleted.getFullYear() === currentMonth.getFullYear() &&
-        lastCompleted.getMonth() === currentMonth.getMonth() - 1;
-
-      const consecutiveMonths = isConsecutive
-        ? (streakData?.consecutive_months || 1) + 1
-        : 1;
-
-      // Update or create streak
-      if (streakData) {
-        await supabase
-          .from("task_completion_streaks")
-          .update({
-            consecutive_months: consecutiveMonths,
-            last_completed_month: currentMonth.toISOString().split("T")[0],
-          })
-          .eq("id", streakData.id);
-      } else if (task.template_id && propertyId) {
-        await supabase.from("task_completion_streaks").insert({
-          user_id: user.id,
-          property_id: propertyId,
-          template_id: task.template_id,
-          consecutive_months: 1,
-          last_completed_month: currentMonth.toISOString().split("T")[0],
-        });
-      }
-
-      // Calculate days early (if completed before due date)
-      const dueDate = new Date(task.due_date);
-      const completedDate = new Date();
-      const daysEarly = Math.max(
-        0,
-        Math.floor((dueDate.getTime() - completedDate.getTime()) / (1000 * 60 * 60 * 24))
-      );
-
-      // Calculate points
+      // Calculate points (simplified - just base points)
       const pointsBreakdown = calculatePointsForTask(
         task.base_points_value,
         task.frequency,
         task.verification_type,
-        consecutiveMonths,
-        daysEarly
+        0, // No streak tracking
+        0  // No early completion bonus
       );
 
       // Update task with points earned
@@ -189,10 +136,10 @@ export async function POST(
           task_id: id,
           points_earned: pointsBreakdown.totalPoints,
           base_points: pointsBreakdown.basePoints,
-          frequency_multiplier: pointsBreakdown.frequencyMultiplier,
-          verification_bonus: pointsBreakdown.verificationBonus,
-          streak_bonus: pointsBreakdown.streakBonus,
-          early_completion_bonus: pointsBreakdown.earlyCompletionBonus,
+          frequency_multiplier: 1,
+          verification_bonus: 0,
+          streak_bonus: 0,
+          early_completion_bonus: 0,
         })
         .select()
         .single();
@@ -220,12 +167,7 @@ export async function POST(
         })
         .eq("id", user.id);
 
-      // Update property safety score
-      const scoreChange = calculateSafetyScoreChange(
-        task.base_points_value,
-        true
-      );
-
+      // Update property safety score as percentage
       // Get the property ID from the checklist
       const checklist = Array.isArray(task.task_checklists)
         ? task.task_checklists[0]
@@ -233,20 +175,15 @@ export async function POST(
       const propertyId = checklist?.property_id;
 
       if (propertyId) {
-        const { data: currentProperty } = await supabase
-          .from("properties")
-          .select("safety_score")
-          .eq("id", propertyId)
-          .single();
-
-        const newSafetyScore = Math.min(
-          1000,
-          Math.max(0, (currentProperty?.safety_score || 0) + scoreChange)
+        // Recalculate safety score as percentage
+        const safetyScorePercentage = await calculateSafetyScorePercentage(
+          supabase,
+          propertyId
         );
 
         await supabase
           .from("properties")
-          .update({ safety_score: newSafetyScore })
+          .update({ safety_score: safetyScorePercentage })
           .eq("id", propertyId);
       }
 
@@ -278,12 +215,27 @@ export async function POST(
       */
     }
 
+    // Get points earned if task was verified
+    let pointsEarned = null;
+    if (result.isVerified) {
+      // We already calculated and stored points_earned in the task
+      // Fetch it from the database to ensure we have the latest value
+      const { data: updatedTask } = await supabase
+        .from("tasks")
+        .select("points_earned")
+        .eq("id", id)
+        .single();
+      pointsEarned = updatedTask?.points_earned || null;
+    }
+
     return NextResponse.json({
       verification,
       result,
+      pointsEarned,
       task: {
         ...task,
         ...updateData,
+        points_earned: pointsEarned || task.points_earned,
       },
     });
   } catch (error: any) {

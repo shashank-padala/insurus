@@ -219,7 +219,7 @@ export default function TasksPage() {
                         {task.base_points_value && (
                           <div className="flex items-center gap-1.5">
                             <span className="font-semibold text-accent">
-                              +{task.base_points_value * 10} pts
+                              +{task.base_points_value} pts
                             </span>
                           </div>
                         )}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Home, Plus, Loader2, Calendar, ListChecks } from "lucide-react";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
+import { PropertyMenu } from "@/components/properties/PropertyMenu";
 
 export default function PropertiesPage() {
   const router = useRouter();
@@ -141,18 +142,20 @@ export default function PropertiesPage() {
               const stats = propertyStats[property.id] || { activeTasks: 0, lastChecklist: null };
               
               return (
-                <Link
+                <div
                   key={property.id}
-                  href={`/properties/${property.id}`}
-                  className="bg-card p-6 rounded-xl shadow-card hover:shadow-glow transition-all block"
+                  className="bg-card p-6 rounded-xl shadow-card hover:shadow-glow transition-all relative"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
                       <Home className="w-6 h-6 text-accent" />
                     </div>
-                    <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded capitalize">
-                      {property.property_type}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded capitalize">
+                        {property.property_type}
+                      </span>
+                      <PropertyMenu property={property} />
+                    </div>
                   </div>
                   
                   <h3 className="text-lg font-heading font-bold text-card-foreground mb-2 line-clamp-2">
@@ -183,10 +186,12 @@ export default function PropertiesPage() {
                     )}
                   </div>
 
-                  <Button variant="outline" size="sm" className="w-full mt-4" onClick={(e) => e.preventDefault()}>
-                    View Details
+                  <Button variant="outline" size="sm" className="w-full mt-4" asChild>
+                    <Link href={`/properties/${property.id}`}>
+                      View Details
+                    </Link>
                   </Button>
-                </Link>
+                </div>
               );
             })}
           </div>

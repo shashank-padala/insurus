@@ -80,6 +80,25 @@ export default async function PropertyPage({
                 <span className="inline-block mt-2 text-xs px-2 py-1 bg-muted text-muted-foreground rounded capitalize">
                   {property.property_type}
                 </span>
+                {property.safety_score !== undefined && (
+                  <div className="mt-4">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm text-muted-foreground">Safety Score</span>
+                      <span className="text-lg font-bold text-foreground">
+                        {Math.round(property.safety_score)}%
+                      </span>
+                    </div>
+                    <div className="w-48 bg-muted rounded-full h-2">
+                      <div
+                        className="bg-accent h-2 rounded-full transition-all"
+                        style={{ width: `${Math.min(100, Math.max(0, property.safety_score))}%` }}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Based on completed tasks
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <PropertyActions property={property} />

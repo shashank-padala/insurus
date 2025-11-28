@@ -26,6 +26,8 @@ export default function CompleteTaskPage({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState<number | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const supabase = createClient();
 
@@ -151,13 +153,23 @@ export default function CompleteTaskPage({
         throw new Error(data.error || "Failed to complete task");
       }
 
+      // Extract points and verification status from response
+      const verification = data.verification;
+      const verified = verification?.is_verified || false;
+      setIsVerified(verified);
+      
+      // Get points from the response
+      if (verified) {
+        setPointsEarned(data.pointsEarned || data.task?.points_earned || null);
+      }
+
       // Show success state
       setSuccess(true);
       
-      // Redirect after 2 seconds
+      // Redirect after 3 seconds (give time to see points)
       setTimeout(() => {
         router.push(`/tasks`);
-      }, 2000);
+      }, 3000);
     } catch (error: any) {
       setError(error.message || "Failed to complete task");
     } finally {
@@ -187,11 +199,22 @@ export default function CompleteTaskPage({
               <CheckCircle className="w-12 h-12 text-green-600 dark:text-green-400" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-heading font-bold text-foreground mb-4">
-              Task Completed!
+              {isVerified ? "Task Verified!" : "Task Submitted!"}
             </h2>
-            <p className="text-muted-foreground mb-8">
-              Your submission is being verified. You'll earn points once verification is complete.
-            </p>
+            {isVerified && pointsEarned !== null ? (
+              <div className="mb-8">
+                <p className="text-muted-foreground mb-2">
+                  Your submission has been verified!
+                </p>
+                <div className="inline-flex items-center gap-2 bg-accent/10 text-accent px-6 py-3 rounded-lg text-xl font-bold">
+                  <span>+{pointsEarned} Points Earned!</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground mb-8">
+                Your submission is being verified. You'll earn points once verification is complete.
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="hero" asChild>
                 <Link href="/tasks">Complete Another Task</Link>

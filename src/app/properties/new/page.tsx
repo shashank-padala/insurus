@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Home } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Shield, Home, Loader2 } from "lucide-react";
 import { US_STATES } from "@/constants/usa-states";
 import { CANADA_PROVINCES } from "@/constants/canada-provinces";
 import { createClient } from "@/lib/supabase/client";
@@ -30,6 +37,7 @@ export default function NewPropertyPage() {
   const [safetyDevices, setSafetyDevices] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showTaskGenerationDialog, setShowTaskGenerationDialog] = useState(false);
   const supabase = createClient();
 
   const deviceOptions = [
@@ -69,8 +77,16 @@ export default function NewPropertyPage() {
 
       if (apiError) throw new Error(apiError);
 
-      router.push("/dashboard");
-      router.refresh();
+      // Show loading dialog while tasks are being generated
+      setShowTaskGenerationDialog(true);
+      
+      // Wait a bit to show the loading state, then redirect
+      // The API is already generating tasks, but we give it time to complete
+      setTimeout(() => {
+        setShowTaskGenerationDialog(false);
+        router.push("/tasks");
+        router.refresh();
+      }, 2000);
     } catch (error: any) {
       setError(error.message || "Failed to create property");
     } finally {
@@ -231,6 +247,24 @@ export default function NewPropertyPage() {
           </div>
         </div>
       </div>
+
+      {/* Task Generation Loading Dialog */}
+      <Dialog open={showTaskGenerationDialog} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Creating Your Safety Tasks</DialogTitle>
+            <DialogDescription>
+              We're generating personalized safety tasks for your property. This may take a moment...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="w-12 h-12 animate-spin text-accent mb-4" />
+            <p className="text-sm text-muted-foreground text-center">
+              Creating checklists and tasks for the next year...
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

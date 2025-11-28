@@ -11,44 +11,46 @@ export interface PointsTier {
   description: string;
 }
 
+// Adjusted tier thresholds for simplified points system (1-10 per task)
+// Assuming ~10-15 tasks per property per year, users can earn 50-150 points per year
 export const POINTS_TIERS: PointsTier[] = [
   {
     minPoints: 0,
-    maxPoints: 99,
+    maxPoints: 49,
     tierName: "Starter",
     insuranceDiscount: 0,
     description: "Begin your safety journey"
   },
   {
-    minPoints: 100,
-    maxPoints: 249,
+    minPoints: 50,
+    maxPoints: 99,
     tierName: "Bronze",
     insuranceDiscount: 2,
     description: "2% discount on insurance premiums"
   },
   {
-    minPoints: 250,
-    maxPoints: 499,
+    minPoints: 100,
+    maxPoints: 199,
     tierName: "Silver",
     insuranceDiscount: 5,
     description: "5% discount on insurance premiums"
   },
   {
-    minPoints: 500,
-    maxPoints: 999,
+    minPoints: 200,
+    maxPoints: 349,
     tierName: "Gold",
     insuranceDiscount: 8,
     description: "8% discount on insurance premiums"
   },
   {
-    minPoints: 1000,
-    maxPoints: 1999,
+    minPoints: 350,
+    maxPoints: 499,
     tierName: "Platinum",
     insuranceDiscount: 12,
     description: "12% discount on insurance premiums"
   },
   {
-    minPoints: 2000,
+    minPoints: 500,
     maxPoints: Infinity,
     tierName: "Diamond",
     insuranceDiscount: 15,
@@ -74,46 +76,13 @@ export interface TaskPointsConfig {
 }
 
 /**
- * Points are awarded based on:
- * 1. Base points (task importance/insurance impact)
- * 2. Frequency multiplier (more frequent = slightly lower per occurrence)
- * 3. Verification bonus (receipts/professional services get bonus)
- * 4. Completion streak bonus (consecutive months)
+ * Simplified Points System
+ * Points are awarded based on base points (1-10) only - no multipliers or bonuses
+ * This keeps the system simple and easy to understand for homeowners
  */
 export const POINTS_CALCULATION = {
-  // Base points from task (1-10)
-  basePoints: (taskPoints: number) => taskPoints * 10,
-  
-  // Frequency multiplier
-  frequencyMultiplier: {
-    monthly: 1.0,      // Full points for monthly tasks
-    quarterly: 1.1,    // 10% bonus for quarterly (less frequent)
-    annually: 1.2,     // 20% bonus for annual (professional services)
-    as_needed: 1.0     // Full points for as-needed tasks
-  },
-  
-  // Verification type bonus
-  verificationBonus: {
-    photo: 0,          // No bonus for photo-only
-    receipt: 5,        // 5 point bonus for professional service receipts
-    document: 0,       // No bonus for documents
-    both: 10           // 10 point bonus for photo + receipt
-  },
-  
-  // Streak bonus (consecutive months completing same task)
-  streakBonus: (consecutiveMonths: number) => {
-    if (consecutiveMonths >= 12) return 20; // 20 point bonus for 12+ month streak
-    if (consecutiveMonths >= 6) return 10;  // 10 point bonus for 6+ month streak
-    if (consecutiveMonths >= 3) return 5;   // 5 point bonus for 3+ month streak
-    return 0;
-  },
-  
-  // Early completion bonus (completed before due date)
-  earlyCompletionBonus: (daysEarly: number) => {
-    if (daysEarly >= 7) return 5;  // 5 points for completing 7+ days early
-    if (daysEarly >= 3) return 3;  // 3 points for completing 3+ days early
-    return 0;
-  }
+  // Base points from task (1-10) - these are the final points awarded
+  basePoints: (taskPoints: number) => taskPoints,
 };
 
 /**
@@ -333,6 +302,7 @@ export const TASK_VALIDATION_RULES = {
 
 /**
  * Helper function to calculate total points for a completed task
+ * Simplified: Just returns base points (1-10)
  */
 export function calculateTaskPoints(
   basePoints: number,
@@ -341,15 +311,8 @@ export function calculateTaskPoints(
   consecutiveMonths: number = 0,
   daysEarly: number = 0
 ): number {
-  const base = POINTS_CALCULATION.basePoints(basePoints);
-  const frequencyMult = POINTS_CALCULATION.frequencyMultiplier[frequency];
-  const verificationBonus = POINTS_CALCULATION.verificationBonus[verificationType];
-  const streakBonus = POINTS_CALCULATION.streakBonus(consecutiveMonths);
-  const earlyBonus = POINTS_CALCULATION.earlyCompletionBonus(daysEarly);
-  
-  return Math.floor(
-    base * frequencyMult + verificationBonus + streakBonus + earlyBonus
-  );
+  // Simple: just return base points
+  return POINTS_CALCULATION.basePoints(basePoints);
 }
 
 /**

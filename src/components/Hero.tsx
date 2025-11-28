@@ -154,6 +154,19 @@ export const Hero = () => {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="country">Country *</Label>
+                  <select
+                    id="country"
+                    required
+                    value={formData.country}
+                    onChange={(e) => handleCountryChange(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="USA">USA</option>
+                    <option value="Canada">Canada</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="address">Street Address *</Label>
                   <Input
                     id="address"
@@ -199,19 +212,6 @@ export const Hero = () => {
                       ))}
                     </select>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Country *</Label>
-                  <select
-                    id="country"
-                    required
-                    value={formData.country}
-                    onChange={(e) => handleCountryChange(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <option value="USA">USA</option>
-                    <option value="Canada">Canada</option>
-                  </select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="propertyType">Property Type *</Label>
