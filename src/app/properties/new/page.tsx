@@ -62,9 +62,10 @@ export default function NewPropertyPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setShowTaskGenerationDialog(true);
 
     try {
-      const { data, error: apiError } = await fetch("/api/properties", {
+      const response = await fetch("/api/properties", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,21 +74,23 @@ export default function NewPropertyPage() {
           ...formData,
           safetyDevices,
         }),
-      }).then((res) => res.json());
+      });
 
-      if (apiError) throw new Error(apiError);
+      const data = await response.json();
 
-      // Show loading dialog while tasks are being generated
-      setShowTaskGenerationDialog(true);
+      if (!response.ok || data.error) {
+        throw new Error(data.error || "Failed to create property");
+      }
+
+      // Property and tasks are now created
+      // Wait a moment to ensure all tasks are processed
+      await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // Wait a bit to show the loading state, then redirect
-      // The API is already generating tasks, but we give it time to complete
-      setTimeout(() => {
-        setShowTaskGenerationDialog(false);
-        router.push("/tasks");
-        router.refresh();
-      }, 2000);
+      setShowTaskGenerationDialog(false);
+      router.push("/properties");
+      router.refresh();
     } catch (error: any) {
+      setShowTaskGenerationDialog(false);
       setError(error.message || "Failed to create property");
     } finally {
       setLoading(false);
@@ -239,8 +242,17 @@ export default function NewPropertyPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit" variant="hero" disabled={loading}>
-                  {loading ? "Creating..." : "Register Property"}
+                <Button type="submit" variant="hero" disabled={loading || showTaskGenerationDialog}>
+                  {showTaskGenerationDialog ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Creating safety plan...
+                    </>
+                  ) : loading ? (
+                    "Creating..."
+                  ) : (
+                    "Register Property"
+                  )}
                 </Button>
               </div>
             </form>
@@ -250,17 +262,25 @@ export default function NewPropertyPage() {
 
       {/* Task Generation Loading Dialog */}
       <Dialog open={showTaskGenerationDialog} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
           <DialogHeader>
-            <DialogTitle>Creating Your Safety Tasks</DialogTitle>
+            <div className="flex items-center justify-center gap-2 text-accent mb-2">
+              <Shield className="w-6 h-6" />
+              <DialogTitle className="text-2xl font-heading font-bold">
+                Creating Your Safety Plan
+              </DialogTitle>
+            </div>
             <DialogDescription>
-              We're generating personalized safety tasks for your property. This may take a moment...
+              Please wait while we create your personalized safety plan...
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center py-8">
             <Loader2 className="w-12 h-12 animate-spin text-accent mb-4" />
             <p className="text-sm text-muted-foreground text-center">
-              Creating checklists and tasks for the next year...
+              Setting up your property and generating tasks for the next year
+            </p>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              This may take a few moments
             </p>
           </div>
         </DialogContent>

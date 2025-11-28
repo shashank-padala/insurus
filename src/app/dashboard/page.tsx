@@ -22,6 +22,16 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
+  // Retry loading tasks if we have properties but no tasks (tasks might still be creating)
+  useEffect(() => {
+    if (properties.length > 0 && recentTasks.length === 0 && upcomingTasks.length === 0 && !loading) {
+      const retryTimer = setTimeout(() => {
+        loadData();
+      }, 3000);
+      return () => clearTimeout(retryTimer);
+    }
+  }, [properties.length, recentTasks.length, upcomingTasks.length, loading]);
+
   const loadData = async () => {
     try {
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();

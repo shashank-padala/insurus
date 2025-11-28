@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Eye, EyeOff } from "lucide-react";
+import { Shield, Eye, EyeOff, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface PropertyData {
@@ -39,6 +39,7 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<"login" | "signup">(defaultTab);
   const [loading, setLoading] = useState(false);
+  const [creatingPlan, setCreatingPlan] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const supabase = createClient();
@@ -143,48 +144,41 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
 
         if (profileError) throw profileError;
 
-        // If property data was provided, create the property
+        // If property data was provided, create the property via API
+        // This will automatically generate a full year of tasks
         if (prefillData?.property) {
+          setCreatingPlan(true);
           const propertyData = prefillData.property;
-          const { data: newProperty, error: propertyError } = await supabase
-            .from("properties")
-            .insert({
-              user_id: authData.user.id,
-              address: propertyData.address,
-              city: propertyData.city,
-              state: propertyData.state,
-              country: propertyData.country,
-              property_type: propertyData.propertyType,
-              safety_devices: [],
-            })
-            .select()
-            .single();
+          
+          try {
+            const response = await fetch("/api/properties", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                address: propertyData.address,
+                city: propertyData.city,
+                state: propertyData.state,
+                country: propertyData.country,
+                propertyType: propertyData.propertyType,
+                safetyDevices: [],
+              }),
+            });
 
-          if (propertyError) {
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || "Failed to create property");
+            }
+
+            // Property and tasks are now created
+            // Wait a moment to ensure all tasks are processed
+            // The API creates tasks in batches, so we wait a bit longer
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } catch (propertyError: any) {
             console.error("Failed to create property:", propertyError);
             // Continue to dashboard even if property creation fails
-          } else if (newProperty) {
-            // Generate first checklist for the property
-            // We'll do this via API call to ensure proper checklist generation
-            try {
-              const currentMonth = new Date(
-                new Date().getFullYear(),
-                new Date().getMonth(),
-                1
-              ).toISOString().split("T")[0];
-
-              await fetch("/api/checklists/generate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  propertyId: newProperty.id,
-                  month: currentMonth,
-                }),
-              });
-            } catch (checklistError) {
-              console.error("Failed to generate checklist:", checklistError);
-              // Continue to dashboard even if checklist generation fails
-            }
+            // User can add property later
+          } finally {
+            setCreatingPlan(false);
           }
         }
 
@@ -200,8 +194,36 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <>
+      {/* Loading Dialog for Safety Plan Creation */}
+      <Dialog open={creatingPlan} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <div className="flex items-center justify-center gap-2 text-accent mb-2">
+              <Shield className="w-6 h-6" />
+              <DialogTitle className="text-2xl font-heading font-bold">
+                Creating Your Safety Plan
+              </DialogTitle>
+            </div>
+            <DialogDescription>
+              Please wait while we create your personalized safety plan...
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="w-12 h-12 animate-spin text-accent mb-4" />
+            <p className="text-sm text-muted-foreground text-center">
+              Setting up your property and generating tasks for the next year
+            </p>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              This may take a few moments
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Main Auth Modal */}
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-center gap-2 text-accent mb-2">
             <Shield className="w-6 h-6" />
@@ -400,15 +422,25 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
                 variant="hero"
                 size="lg"
                 className="w-full"
-                disabled={loading}
+                disabled={loading || creatingPlan}
               >
-                {loading ? "Creating account..." : "Create Account"}
+                {creatingPlan ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Creating safety plan...
+                  </>
+                ) : loading ? (
+                  "Creating account..."
+                ) : (
+                  "Create Account"
+                )}
               </Button>
             </form>
           </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
 
