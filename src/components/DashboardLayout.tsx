@@ -9,6 +9,7 @@ import {
   User,
 } from "lucide-react";
 import { SideNav, SideNavItem } from "@/components/SideNav";
+import { PromotionalBanner } from "@/components/PromotionalBanner";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -44,6 +45,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col md:ml-64 pb-16 md:pb-0">
+        <PromotionalBanner />
         <main className="flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>

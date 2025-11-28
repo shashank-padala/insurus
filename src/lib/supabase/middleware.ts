@@ -50,6 +50,27 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Admin routes protection
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin");
+  if (isAdminRoute) {
+    const adminSession = request.cookies.get("admin_session");
+    const isAdminLoginPage = request.nextUrl.pathname === "/admin/login";
+
+    // If not on login page and no admin session, redirect to login
+    if (!isAdminLoginPage && adminSession?.value !== "authenticated") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+
+    // If on login page and already authenticated, redirect to dashboard
+    if (isAdminLoginPage && adminSession?.value === "authenticated") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/dashboard";
+      return NextResponse.redirect(url);
+    }
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:
