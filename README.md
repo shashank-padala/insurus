@@ -48,6 +48,9 @@ Create a `.env.local` file in the root directory with the following variables:
 
 **Note**: For VeChain testnet, you can get free testnet tokens from the VeChain faucet. The current implementation uses a placeholder that creates transaction hashes. To enable full VeChain integration, install the VeChain SDK packages and update the implementation in `src/lib/blockchain/vechain.ts`.
 
+### Admin Dashboard
+- `ADMIN_PASSWORD` - Password for accessing the admin dashboard at `/admin/login`. This password is used to authenticate admin users who can manage promotional banners and create admin tasks.
+
 ## Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
