@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Shield, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import {
@@ -10,8 +9,8 @@ import {
 
 export default function RewardsTiersPage() {
   return (
-    <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
           <Link
@@ -80,7 +79,7 @@ export default function RewardsTiersPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 

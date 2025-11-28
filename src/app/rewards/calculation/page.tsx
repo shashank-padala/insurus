@@ -1,6 +1,5 @@
 "use client";
 
-import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import {
   Shield,
@@ -13,8 +12,8 @@ import Link from "next/link";
 
 export default function RewardsCalculationPage() {
   return (
-    <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* Header */}
         <div className="mb-6">
           <Link
@@ -130,7 +129,7 @@ export default function RewardsCalculationPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 

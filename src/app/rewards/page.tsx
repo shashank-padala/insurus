@@ -33,12 +33,15 @@ export default function RewardsPage() {
     loadData();
   }, [timeFilter]);
 
+  const [user, setUser] = useState<any>(null);
+
   const loadData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      setUser(authUser);
       
-      if (!user) {
-        router.push("/");
+      if (!authUser) {
+        setLoading(false);
         return;
       }
 
@@ -129,6 +132,133 @@ export default function RewardsPage() {
     
     return { progress: Math.min(100, Math.max(0, progress)), pointsToNext: Math.max(0, pointsToNext) };
   };
+
+  // Show public rewards information page if not logged in
+  if (!user && !loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-12 max-w-7xl">
+          {/* Header */}
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground mb-4">
+              Rewards & Safety Score
+            </h1>
+            <p className="text-xl text-muted-foreground">
+              Earn points by completing safety tasks and unlock insurance discounts
+            </p>
+          </div>
+
+          {/* Public Rewards Info */}
+          <div className="grid md:grid-cols-2 gap-6 mb-12">
+            <div className="bg-card p-6 rounded-xl shadow-card">
+              <div className="flex items-center gap-3 mb-4">
+                <Award className="w-8 h-8 text-accent" />
+                <h2 className="text-2xl font-heading font-bold text-foreground">
+                  Points System
+                </h2>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Earn 1-10 points for each verified safety task completion. Points accumulate to unlock higher tiers with better rewards.
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Base points: 1-10 per task (no multipliers)</li>
+                <li>• Simple and transparent system</li>
+                <li>• Points never expire</li>
+              </ul>
+            </div>
+
+            <div className="bg-card p-6 rounded-xl shadow-card">
+              <div className="flex items-center gap-3 mb-4">
+                <Shield className="w-8 h-8 text-accent" />
+                <h2 className="text-2xl font-heading font-bold text-foreground">
+                  Safety Score
+                </h2>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Each property has its own Safety Score (0-100%) based on completed tasks. Higher scores unlock better insurance discounts.
+              </p>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Calculated per property</li>
+                <li>• Simple formula: (Completed / Total) × 100</li>
+                <li>• Starts at 0% and increases with completions</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Tiers Preview */}
+          <div className="bg-card p-6 rounded-xl shadow-card mb-12">
+            <h2 className="text-2xl font-heading font-bold text-foreground mb-6">
+              Points Tiers
+            </h2>
+            <div className="grid md:grid-cols-5 gap-4">
+              {POINTS_TIERS.slice(0, 5).map((tier) => (
+                <div key={tier.tierName} className="text-center p-4 border border-border rounded-lg">
+                  <div className="text-2xl font-bold text-accent mb-2">{tier.tierName}</div>
+                  <div className="text-sm text-muted-foreground mb-2">
+                    {tier.minPoints}+ points
+                  </div>
+                  {tier.insuranceDiscount > 0 && (
+                    <div className="text-lg font-semibold text-foreground">
+                      {tier.insuranceDiscount}% off
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Learn More Links */}
+          <div className="bg-card p-6 rounded-xl shadow-card mb-12">
+            <h2 className="text-xl font-heading font-bold text-foreground mb-4">
+              Learn More
+            </h2>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Link
+                href="/rewards/calculation"
+                className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <h3 className="font-semibold text-foreground mb-2">How Rewards Are Calculated</h3>
+                <p className="text-sm text-muted-foreground">
+                  Understand the points and safety score system
+                </p>
+              </Link>
+              <Link
+                href="/rewards/tiers"
+                className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <h3 className="font-semibold text-foreground mb-2">Points Tiers</h3>
+                <p className="text-sm text-muted-foreground">
+                  View all tiers and insurance discounts
+                </p>
+              </Link>
+              <Link
+                href="/rewards/redemption"
+                className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <h3 className="font-semibold text-foreground mb-2">Redemption Options</h3>
+                <p className="text-sm text-muted-foreground">
+                  Learn how to redeem your points
+                </p>
+              </Link>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div className="bg-gradient-to-r from-accent/20 to-accent/10 p-8 rounded-xl border border-accent/30 text-center">
+            <h2 className="text-2xl font-heading font-bold text-foreground mb-4">
+              Ready to Start Earning?
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Sign up to start earning points and improving your safety score
+            </p>
+            <Button variant="hero" size="lg" asChild>
+              <Link href="/register">Get Started</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -82,19 +82,22 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
 
       if (error) throw error;
 
+      // Wait a moment for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       onOpenChange(false);
-      router.push("/dashboard");
-      router.refresh();
+      
+      // Use window.location for reliable redirect
+      window.location.href = "/dashboard";
     } catch (error: any) {
       setError(error.message || "An error occurred during login");
-    } finally {
       setLoading(false);
     }
   };
@@ -182,9 +185,13 @@ export function AuthModal({ open, onOpenChange, defaultTab = "signup", prefillDa
           }
         }
 
+        // Wait a moment for auth state to update
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         onOpenChange(false);
-        router.push("/dashboard");
-        router.refresh();
+        
+        // Use window.location for reliable redirect
+        window.location.href = "/dashboard";
       }
     } catch (error: any) {
       setError(error.message || "An error occurred during registration");
