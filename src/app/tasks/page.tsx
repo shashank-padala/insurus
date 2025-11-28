@@ -19,7 +19,7 @@ import {
 import Link from "next/link";
 import { format, isPast, parseISO, startOfMonth, compareAsc } from "date-fns";
 
-type TaskFilter = "all" | "pending" | "in_progress" | "completed" | "overdue";
+type TaskFilter = "all" | "pending" | "completed" | "overdue";
 
 export default function TasksPage() {
   const router = useRouter();
@@ -184,10 +184,9 @@ export default function TasksPage() {
 
         {/* Filter Tabs */}
         <Tabs value={filter} onValueChange={(v) => setFilter(v as TaskFilter)} className="mb-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="all" className="text-xs sm:text-sm">All</TabsTrigger>
             <TabsTrigger value="pending" className="text-xs sm:text-sm">Pending</TabsTrigger>
-            <TabsTrigger value="in_progress" className="text-xs sm:text-sm">In Progress</TabsTrigger>
             <TabsTrigger value="completed" className="text-xs sm:text-sm">Completed</TabsTrigger>
             <TabsTrigger value="overdue" className="text-xs sm:text-sm">Overdue</TabsTrigger>
           </TabsList>
